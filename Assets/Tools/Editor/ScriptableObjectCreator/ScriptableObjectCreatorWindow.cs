@@ -6,6 +6,15 @@ using UnityEngine;
 
 public class ScriptableObjectCreatorWindow : EditorWindow
 {
+    private static class Layout
+    {
+        public const float MIN_WINDOW_WIDTH = 300f;
+        public const float MIN_WINDOW_HEIGHT = 300f;
+        public const float TOGGLE_WIDTH = 100f;
+        public const float BUTTON_HEIGHT = 25f;
+        public const float ROW_SPACE = 5f;
+    }
+
     [MenuItem("Tools/Scriptable Object Creator")]
     public static void ShowWindow()
     {
@@ -14,6 +23,7 @@ public class ScriptableObjectCreatorWindow : EditorWindow
 
     private List<Type> scriptableObjectTypes;
     private bool manualSave;
+    private Vector2 scrollPos;
 
     private const string EDITOR_KEY_MANUAL_SAVE = "SO_CREATOR_MANUAL_SAVE";
 
@@ -30,31 +40,17 @@ public class ScriptableObjectCreatorWindow : EditorWindow
 
     private void OnGUI()
     {
-        minSize = new Vector2(300, 300);
+        minSize = new Vector2(Layout.MIN_WINDOW_WIDTH, Layout.MIN_WINDOW_HEIGHT);
 
-        float toggleWidth = 100f;
-        float labelWidth = position.width - toggleWidth - 20f;
-
-        EditorGUILayout.Space();
-        EditorGUILayout.BeginHorizontal();
-
-        GUILayout.Label("Create Scriptable Objects", EditorStyles.boldLabel, GUILayout.Width(labelWidth > 0 ? labelWidth : 0));
-        GUILayout.FlexibleSpace();
-        GUIContent toggleContent = new GUIContent(
-            "Manual Save",
-            "If checked, you'll manually choose where to save the ScriptableObject. If unchecked, it will auto-save under ScriptableObjects/[TypeName]/.");
-        manualSave = EditorGUILayout.ToggleLeft(toggleContent, manualSave, EditorStyles.boldLabel, GUILayout.Width(toggleWidth));
-
+        EditorGUILayout.BeginHorizontal("Box");
+        DrawHeader();
         EditorGUILayout.EndHorizontal();
-        EditorGUILayout.Space();
 
-        foreach(var type in scriptableObjectTypes)
-        {
-            if(GUILayout.Button($"Create {type.Name}"))
-            {
-                CreateAndSaveScriptableObject(type);
-            }
-        }
+        EditorGUILayout.BeginVertical("Box");
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+        DrawButtons();
+        EditorGUILayout.EndScrollView();
+        EditorGUILayout.EndVertical();
 
         // if clicked on window, deselect, defocus
         if(Event.current.type == EventType.MouseDown && Event.current.button == 0)
@@ -109,7 +105,6 @@ public class ScriptableObjectCreatorWindow : EditorWindow
         EditorUtility.FocusProjectWindow();
         Selection.activeObject = asset;
     }
-
     private List<Type> FindAllScriptableObjectTypesInAssets()
     {
         var guids = AssetDatabase.FindAssets("t:MonoScript", new[] { "Assets" });
@@ -134,5 +129,27 @@ public class ScriptableObjectCreatorWindow : EditorWindow
         }
 
         return soTypes.OrderBy(t => t.Name).ToList();
+    }
+    private void DrawHeader()
+    {
+        float labelWidth = position.width - Layout.TOGGLE_WIDTH - 20f;
+
+        GUILayout.Label("Create Scriptable Objects", EditorStyles.boldLabel, GUILayout.Width(labelWidth > 0 ? labelWidth : 0));
+        GUILayout.FlexibleSpace();
+        GUIContent toggleContent = new GUIContent(
+            "Manual Save",
+            "If checked, you'll manually choose where to save the ScriptableObject. If unchecked, it will auto-save under ScriptableObjects/[TypeName]/.");
+
+        manualSave = EditorGUILayout.ToggleLeft(toggleContent, manualSave, EditorStyles.boldLabel, GUILayout.Width(Layout.TOGGLE_WIDTH));
+    }
+    private void DrawButtons()
+    {
+        foreach(var type in scriptableObjectTypes)
+        {
+            if(GUILayout.Button($"Create {type.Name}", GUILayout.Height(Layout.BUTTON_HEIGHT)))
+            {
+                CreateAndSaveScriptableObject(type);
+            }
+        }
     }
 }
