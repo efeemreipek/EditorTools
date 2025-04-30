@@ -15,9 +15,17 @@ public class ScriptableObjectCreatorWindow : EditorWindow
     private List<Type> scriptableObjectTypes;
     private bool manualSave;
 
+    private const string EDITOR_KEY_MANUAL_SAVE = "SO_CREATOR_MANUAL_SAVE";
+
     private void OnEnable()
     {
         scriptableObjectTypes = FindAllScriptableObjectTypesInAssets();
+
+        manualSave = EditorPrefs.GetBool(EDITOR_KEY_MANUAL_SAVE);
+    }
+    private void OnDisable()
+    {
+        EditorPrefs.SetBool(EDITOR_KEY_MANUAL_SAVE, manualSave);
     }
 
     private void OnGUI()
