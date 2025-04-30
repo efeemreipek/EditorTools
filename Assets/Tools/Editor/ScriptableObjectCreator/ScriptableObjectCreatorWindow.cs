@@ -47,6 +47,13 @@ public class ScriptableObjectCreatorWindow : EditorWindow
                 CreateAndSaveScriptableObject(type);
             }
         }
+
+        // if clicked on window, deselect, defocus
+        if(Event.current.type == EventType.MouseDown && Event.current.button == 0)
+        {
+            GUI.FocusControl(null);
+            Repaint();
+        }
     }
 
     private void CreateAndSaveScriptableObject(Type type)
