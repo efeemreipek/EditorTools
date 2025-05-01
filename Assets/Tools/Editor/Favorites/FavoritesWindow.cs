@@ -1,9 +1,16 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
 public class FavoritesWindow : EditorWindow
 {
+    [System.Serializable]
+    private class FavoritesData
+    {
+        public List<string> favoriteGuids = new List<string>();
+    }
     private static class Layout
     {
         public const float BUTTON_HEIGHT = 25f;
@@ -23,6 +30,34 @@ public class FavoritesWindow : EditorWindow
     private List<Object> favorites = new List<Object>();
     private Dictionary<Object, Texture> iconCache = new Dictionary<Object, Texture>();
     private Color colorRed = new Color(0.93f, 0.38f, 0.34f);
+
+    private void OnEnable()
+    {
+        string path = "Assets/Tools/Editor/Favorites/Favorites.json";
+        if(File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            var data = JsonUtility.FromJson<FavoritesData>(json);
+            favorites = data.favoriteGuids
+                .Select(guid => AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid)))
+                .Where(obj => obj != null)
+                .ToList();
+        }
+    }
+    private void OnDisable()
+    {
+        if(favorites.Count == 0) return;
+
+        string path = "Assets/Tools/Editor/Favorites/Favorites.json";
+        var data = new FavoritesData
+        {
+            favoriteGuids = favorites
+                .Where(obj => obj != null)
+                .Select(obj => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(obj)))
+                .ToList()
+        };
+        File.WriteAllText(path, JsonUtility.ToJson(data));
+    }
 
     private void OnGUI()
     {
