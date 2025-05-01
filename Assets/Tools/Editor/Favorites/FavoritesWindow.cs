@@ -83,6 +83,19 @@ public class FavoritesWindow : EditorWindow
 
         EditorGUILayout.EndScrollView();
         EditorGUILayout.EndVertical();
+
+        // if clicked on window, deselect, defocus
+        if(Event.current.type == EventType.MouseDown && Event.current.button == 0)
+        {
+            GUI.FocusControl(null);
+            reorderableList.index = -1;
+            Repaint();
+        }
+    }
+    private void OnLostFocus()
+    {
+        reorderableList.index = -1;
+        Repaint();
     }
 
     private void DrawHeaderButtons()
