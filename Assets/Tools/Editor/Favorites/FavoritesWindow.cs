@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEditorInternal;
 
 public class FavoritesWindow : EditorWindow
 {
@@ -30,6 +31,8 @@ public class FavoritesWindow : EditorWindow
     private List<Object> favorites = new List<Object>();
     private Dictionary<Object, Texture> iconCache = new Dictionary<Object, Texture>();
     private Color colorRed = new Color(0.93f, 0.38f, 0.34f);
+    private ReorderableList reorderableList;
+    private SerializedObject serializedObjectWrapper;
 
     private void OnEnable()
     {
@@ -43,6 +46,8 @@ public class FavoritesWindow : EditorWindow
                 .Where(obj => obj != null)
                 .ToList();
         }
+
+        InitializeReorderableList();
     }
     private void OnDisable()
     {
@@ -71,7 +76,11 @@ public class FavoritesWindow : EditorWindow
 
         EditorGUILayout.BeginVertical("Box");
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
-        DrawFavoritesList();
+
+        serializedObjectWrapper.Update();
+        reorderableList.DoLayoutList();
+        serializedObjectWrapper.ApplyModifiedProperties();
+
         EditorGUILayout.EndScrollView();
         EditorGUILayout.EndVertical();
     }
@@ -99,69 +108,49 @@ public class FavoritesWindow : EditorWindow
 
         EditorGUILayout.EndHorizontal();
     }
-    private void DrawFavoritesList()
+    private void InitializeReorderableList()
     {
-        List<Object> toRemove = new List<Object>();
-        var layout = CalculateLayout();
+        serializedObjectWrapper = new SerializedObject(this);
+        reorderableList = new ReorderableList(favorites, typeof(Object), true, false, false, false);
 
-        EditorGUILayout.BeginVertical();
-        foreach(var item in favorites)
-        {
-            if(item == null)
-            {
-                toRemove.Add(item);
-                continue;
-            }
+        reorderableList.drawElementCallback = (rect, index, isActive, isFocused) => DrawFavoriteItem(rect, index);
 
-            EditorGUILayout.BeginHorizontal();
-            DrawFavoriteItem(item, layout, toRemove);
-            EditorGUILayout.EndHorizontal();
-            GUILayout.Space(2);
-        }
-        EditorGUILayout.EndVertical();
-
-        foreach(var item in toRemove)
-        {
-            favorites.Remove(item);
-        }
+        reorderableList.elementHeight = Layout.BUTTON_HEIGHT + Layout.ROW_SPACING * 2;
     }
-    private void DrawFavoriteItem(Object item, (float contentButtonWidth, bool verticalScrollbarWillShow) layout, List<Object> toRemove)
+
+    private void DrawFavoriteItem(Rect rect, int index)
     {
+        Object item = favorites[index];
+        if(item == null) return;
+
         if(!iconCache.TryGetValue(item, out Texture icon) || icon == null)
         {
-            icon = item is Texture2D 
+            icon = item is Texture2D
                 ? EditorGUIUtility.ObjectContent(null, typeof(Texture2D)).image
                 : AssetPreview.GetMiniThumbnail(item) ?? EditorGUIUtility.ObjectContent(null, item.GetType()).image;
             iconCache[item] = icon;
         }
-        
-        GUIContent content = new GUIContent(item.name);
-        content.image = icon;
 
-        if(GUILayout.Button(content, GUILayout.Width(layout.contentButtonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)))
+        GUIContent content = new GUIContent(item.name, icon);
+
+        float verticalOffset = (reorderableList.elementHeight - Layout.BUTTON_HEIGHT) * 0.5f;
+
+        Rect buttonRect = new Rect(rect.x, rect.y + verticalOffset, rect.width - Layout.X_BUTTON_WIDTH - 4f, Layout.BUTTON_HEIGHT);
+        Rect xButtonRect = new Rect(rect.xMax - Layout.X_BUTTON_WIDTH, rect.y + verticalOffset, Layout.X_BUTTON_WIDTH, Layout.BUTTON_HEIGHT);
+
+        if(GUI.Button(buttonRect, content))
         {
             Selection.activeObject = item;
             EditorGUIUtility.PingObject(item);
         }
 
         GUI.color = colorRed;
-        if(GUILayout.Button("X", GUILayout.Width(Layout.X_BUTTON_WIDTH), GUILayout.Height(Layout.BUTTON_HEIGHT)))
+        if(GUI.Button(xButtonRect, "X"))
         {
-            toRemove.Add(item);
+            favorites.RemoveAt(index);
             iconCache.Remove(item);
         }
         ChangeColorToNormal();
-    }
-    private (float contentButtonWidth, bool verticalScrollbarWillShow) CalculateLayout()
-    {
-        float estimatedRowHeight = Layout.BUTTON_HEIGHT + Layout.ROW_SPACING;
-        float totalContentHeight = favorites.Count * estimatedRowHeight;
-        float scrollViewHeight = position.height - 100f;
-        bool verticalScrollbarWillShow = totalContentHeight > scrollViewHeight;
-        float scrollbarWidth = verticalScrollbarWillShow ? Layout.SCROLLBAR_WIDTH : 0f;
-        float contentButtonWidth = EditorGUIUtility.currentViewWidth - Layout.X_BUTTON_WIDTH - 30f - scrollbarWidth;
-
-        return (contentButtonWidth, verticalScrollbarWillShow);
     }
     private void ChangeColorToNormal() => GUI.color = Color.white;
 }
