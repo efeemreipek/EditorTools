@@ -119,7 +119,7 @@ public class FavoritesWindow : EditorWindow
     {
         EditorGUILayout.BeginHorizontal();
 
-        if(GUILayout.Button("Favorite Selected", GUILayout.Height(Layout.HEADER_BUTTON_HEIGHT)))
+        if(GUILayout.Button("Favorite Selected", GUILayout.Height(Layout.HEADER_BUTTON_HEIGHT)) && Event.current.button == 0)
         {
             foreach(var item in Selection.objects)
             {
@@ -130,7 +130,7 @@ public class FavoritesWindow : EditorWindow
                 }
             }
         }
-        if(GUILayout.Button("Clear Favorites", GUILayout.Height(Layout.HEADER_BUTTON_HEIGHT)))
+        if(GUILayout.Button("Clear Favorites", GUILayout.Height(Layout.HEADER_BUTTON_HEIGHT)) && Event.current.button == 0)
         {
             favorites.Clear();
             iconCache.Clear();
@@ -168,7 +168,7 @@ public class FavoritesWindow : EditorWindow
         Rect xButtonRect = new Rect(rect.xMax - Layout.X_BUTTON_WIDTH, rect.y + verticalOffset, Layout.X_BUTTON_WIDTH, Layout.BUTTON_HEIGHT);
 
         // draw empty button
-        if(GUI.Button(buttonRect, GUIContent.none))
+        if(GUI.Button(buttonRect, GUIContent.none) && Event.current.button == 0)
         {
             Selection.activeObject = item;
             EditorGUIUtility.PingObject(item);
@@ -196,7 +196,7 @@ public class FavoritesWindow : EditorWindow
 
         // draw X button
         GUI.color = colorRed;
-        if(GUI.Button(xButtonRect, "X"))
+        if(GUI.Button(xButtonRect, "X") && Event.current.button == 0)
         {
             pendingRemoveIndex = index;
         }
