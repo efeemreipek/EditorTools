@@ -34,6 +34,7 @@ public class FavoritesWindow : EditorWindow
     private ReorderableList reorderableList;
     private SerializedObject serializedObjectWrapper;
     private int? pendingRemoveIndex = null;
+    private int previousFavoritesCount = 0;
 
     private void OnEnable()
     {
@@ -46,13 +47,15 @@ public class FavoritesWindow : EditorWindow
                 .Select(guid => AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid)))
                 .Where(obj => obj != null)
                 .ToList();
+
+            previousFavoritesCount = favorites.Count;
         }
 
         InitializeReorderableList();
     }
     private void OnDisable()
     {
-        if(favorites.Count == 0) return;
+        if(previousFavoritesCount == 0 && favorites.Count == 0) return;
 
         string path = "Assets/Tools/Editor/Favorites/Favorites.json";
         var data = new FavoritesData
