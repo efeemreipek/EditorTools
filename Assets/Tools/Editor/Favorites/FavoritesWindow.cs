@@ -14,14 +14,14 @@ public class FavoritesWindow : EditorWindow
     }
     private static class Layout
     {
-        public const float BUTTON_HEIGHT = 25f;
-        public const float HEADER_BUTTON_HEIGHT = 30f;
+        public const float BUTTON_HEIGHT = 30f;
+        public const float HEADER_BUTTON_HEIGHT = 40f;
         public const float ROW_SPACING = 2f;
         public const float X_BUTTON_WIDTH = 35f;
         public const float SCROLLBAR_WIDTH = 16f;
         public const float MIN_WINDOW_WIDTH = 300f;
         public const float MIN_WINDOW_HEIGHT = 300f;
-        public const float HEADER_SPACE = 10f;
+        public const float HEADER_SPACE = 5f;
     }
 
     [MenuItem("Tools/Favorites")]
@@ -144,19 +144,40 @@ public class FavoritesWindow : EditorWindow
             iconCache[item] = icon;
         }
 
-        GUIContent content = new GUIContent(item.name, icon);
-
+        // calculate button position
         float verticalOffset = (reorderableList.elementHeight - Layout.BUTTON_HEIGHT) * 0.5f;
 
         Rect buttonRect = new Rect(rect.x, rect.y + verticalOffset, rect.width - Layout.X_BUTTON_WIDTH - 4f, Layout.BUTTON_HEIGHT);
         Rect xButtonRect = new Rect(rect.xMax - Layout.X_BUTTON_WIDTH, rect.y + verticalOffset, Layout.X_BUTTON_WIDTH, Layout.BUTTON_HEIGHT);
 
-        if(GUI.Button(buttonRect, content))
+        // draw empty button
+        if(GUI.Button(buttonRect, GUIContent.none))
         {
             Selection.activeObject = item;
             EditorGUIUtility.PingObject(item);
         }
 
+        // calculate icon position
+        float iconSize = Layout.BUTTON_HEIGHT - 4f;
+        float iconPadding = 4f;
+        Rect iconRect = new Rect(buttonRect.x + iconPadding, buttonRect.y + (buttonRect.height - iconSize) * 0.5f, iconSize, iconSize);
+
+        // calculate text position
+        float labelStartX = iconRect.xMax + iconPadding;
+        Rect labelRect = new Rect(labelStartX, buttonRect.y, buttonRect.width - (labelStartX - buttonRect.x) - 2f, buttonRect.height);
+
+        // draw icon
+        GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit);
+
+        // draw text
+        GUIStyle centeredLabel = new GUIStyle(EditorStyles.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip
+        };
+        GUI.Label(labelRect, item.name, centeredLabel);
+
+        // draw X button
         GUI.color = colorRed;
         if(GUI.Button(xButtonRect, "X"))
         {
