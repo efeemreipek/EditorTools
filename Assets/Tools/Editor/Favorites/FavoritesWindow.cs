@@ -10,7 +10,7 @@ public class FavoritesWindow : EditorWindow
     [System.Serializable]
     private class FavoritesData
     {
-        public List<string> favoriteGuids = new List<string>();
+        public List<string> globalIDs = new List<string>();
     }
     private static class Layout
     {
@@ -43,9 +43,16 @@ public class FavoritesWindow : EditorWindow
         {
             string json = File.ReadAllText(path);
             var data = JsonUtility.FromJson<FavoritesData>(json);
-            favorites = data.favoriteGuids
-                .Select(guid => AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid)))
-                .Where(obj => obj != null)
+            favorites = data.globalIDs
+                .Select(idStr =>
+                {
+                    if(GlobalObjectId.TryParse(idStr, out var id))
+                    {
+                        return GlobalObjectId.GlobalObjectIdentifierToObjectSlow(id);
+                    }
+                    return null;
+                })
+                .Where(obj =>  obj != null)
                 .ToList();
 
             previousFavoritesCount = favorites.Count;
@@ -60,14 +67,17 @@ public class FavoritesWindow : EditorWindow
         string path = "Assets/Tools/Editor/Favorites/Favorites.json";
         var data = new FavoritesData
         {
-            favoriteGuids = favorites
+            globalIDs = favorites
                 .Where(obj => obj != null)
-                .Select(obj => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(obj)))
+                .Select(obj =>
+                {
+                    var id = GlobalObjectId.GetGlobalObjectIdSlow(obj);
+                    return id.ToString();
+                })
                 .ToList()
         };
         File.WriteAllText(path, JsonUtility.ToJson(data));
     }
-
     private void OnGUI()
     {
         minSize = new Vector2(Layout.MIN_WINDOW_WIDTH, Layout.MIN_WINDOW_HEIGHT);
