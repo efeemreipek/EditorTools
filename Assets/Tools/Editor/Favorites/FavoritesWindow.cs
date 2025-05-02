@@ -33,6 +33,7 @@ public class FavoritesWindow : EditorWindow
     private Color colorRed = new Color(0.93f, 0.38f, 0.34f);
     private ReorderableList reorderableList;
     private SerializedObject serializedObjectWrapper;
+    private int? pendingRemoveIndex = null;
 
     private void OnEnable()
     {
@@ -83,6 +84,22 @@ public class FavoritesWindow : EditorWindow
 
         EditorGUILayout.EndScrollView();
         EditorGUILayout.EndVertical();
+
+        // if favorite needs to be removed then remove
+        if(pendingRemoveIndex.HasValue)
+        {
+            int i = pendingRemoveIndex.Value;
+            if(i >= 0 && i < favorites.Count)
+            {
+                Object item = favorites[i];
+                favorites.RemoveAt(i);
+                iconCache.Remove(item);
+                reorderableList.index = -1;
+            }
+            pendingRemoveIndex = null;
+            GUI.FocusControl(null);
+            Repaint();
+        }
 
         // if clicked on window, deselect, defocus
         if(Event.current.type == EventType.MouseDown && Event.current.button == 0)
@@ -181,8 +198,7 @@ public class FavoritesWindow : EditorWindow
         GUI.color = colorRed;
         if(GUI.Button(xButtonRect, "X"))
         {
-            favorites.RemoveAt(index);
-            iconCache.Remove(item);
+            pendingRemoveIndex = index;
         }
         ChangeColorToNormal();
     }
