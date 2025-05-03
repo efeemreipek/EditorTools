@@ -22,6 +22,7 @@ public class FavoritesWindow : EditorWindow
         public const float MIN_WINDOW_WIDTH = 300f;
         public const float MIN_WINDOW_HEIGHT = 300f;
         public const float HEADER_SPACE = 5f;
+        public const float DROP_MARGIN = 5f;
     }
 
     [MenuItem("Tools/Favorites")]
@@ -36,6 +37,7 @@ public class FavoritesWindow : EditorWindow
     private SerializedObject serializedObjectWrapper;
     private int? pendingRemoveIndex = null;
     private int previousFavoritesCount = 0;
+    private bool isDragging;
     private bool isStyleInitDone;
 
     private GUIStyle headerButtonStyle;
@@ -59,7 +61,7 @@ public class FavoritesWindow : EditorWindow
                     }
                     return null;
                 })
-                .Where(obj =>  obj != null)
+                .Where(obj => obj != null)
                 .ToList();
 
             previousFavoritesCount = favorites.Count;
@@ -90,6 +92,49 @@ public class FavoritesWindow : EditorWindow
         if(!isStyleInitDone) InitializeStyles();
 
         minSize = new Vector2(Layout.MIN_WINDOW_WIDTH, Layout.MIN_WINDOW_HEIGHT);
+
+        Rect windowRect = new Rect(0f, 0f, position.width, position.height);
+
+        // drag and drop logic
+        if(Event.current.type == EventType.DragUpdated || Event.current.type == EventType.DragPerform)
+        {
+            if(windowRect.Contains(Event.current.mousePosition))
+            {
+                isDragging = true;
+                DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+
+                Repaint();
+
+                if(Event.current.type == EventType.DragPerform)
+                {
+                    DragAndDrop.AcceptDrag();
+                    foreach(var dragged in DragAndDrop.objectReferences)
+                    {
+                        if(dragged != null && !favorites.Contains(dragged))
+                        {
+                            favorites.Add(dragged);
+                            iconCache.Remove(dragged);
+                        }
+                    }
+                    isDragging = false;
+                    Event.current.Use();
+                    Repaint();
+                }
+                Event.current.Use();
+                return;
+            }
+        }
+        else if(Event.current.type == EventType.DragExited)
+        {
+            isDragging = false;
+            Repaint();
+        }
+
+        if(isDragging)
+        {
+            DrawDropArea(windowRect);
+            return;
+        }
 
         EditorGUILayout.BeginVertical("Box");
         GUILayout.Space(Layout.HEADER_SPACE);
@@ -137,6 +182,25 @@ public class FavoritesWindow : EditorWindow
         Repaint();
     }
 
+    private void DrawDropArea(Rect windowRect)
+    {
+        GUI.Box(windowRect, string.Empty);
+
+        GUI.color = Color.black;
+
+        Rect dropRect = new Rect(
+            windowRect.x + Layout.DROP_MARGIN,
+            windowRect.y + Layout.DROP_MARGIN,
+            windowRect.width - Layout.DROP_MARGIN * 2,
+            windowRect.height - Layout.DROP_MARGIN * 2
+            );
+
+        GUI.Box(dropRect, string.Empty);
+
+        ChangeColorToNormal();
+
+        GUI.Label(dropRect, "DROP HERE\nTO FAVORITE", dropLabelStyle);
+    }
     private void DrawHeaderButtons()
     {
         GUI.color = headerButtonColor;
