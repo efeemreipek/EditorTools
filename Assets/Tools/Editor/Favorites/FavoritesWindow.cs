@@ -30,11 +30,18 @@ public class FavoritesWindow : EditorWindow
     private Vector2 scrollPos;
     private List<Object> favorites = new List<Object>();
     private Dictionary<Object, Texture> iconCache = new Dictionary<Object, Texture>();
-    private Color colorRed = new Color(0.93f, 0.38f, 0.34f);
+    private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
+    private Color headerButtonColor = new Color(0.74f, 0.74f, 0.74f);
     private ReorderableList reorderableList;
     private SerializedObject serializedObjectWrapper;
     private int? pendingRemoveIndex = null;
     private int previousFavoritesCount = 0;
+    private bool isStyleInitDone;
+
+    private GUIStyle headerButtonStyle;
+    private GUIStyle dropLabelStyle;
+    private GUIStyle centeredLabelStyle;
+    private GUIStyle xButtonStyle;
 
     private void OnEnable()
     {
@@ -80,6 +87,8 @@ public class FavoritesWindow : EditorWindow
     }
     private void OnGUI()
     {
+        if(!isStyleInitDone) InitializeStyles();
+
         minSize = new Vector2(Layout.MIN_WINDOW_WIDTH, Layout.MIN_WINDOW_HEIGHT);
 
         EditorGUILayout.BeginVertical("Box");
@@ -130,9 +139,11 @@ public class FavoritesWindow : EditorWindow
 
     private void DrawHeaderButtons()
     {
+        GUI.color = headerButtonColor;
+
         EditorGUILayout.BeginHorizontal();
 
-        if(GUILayout.Button("Favorite Selected", GUILayout.Height(Layout.HEADER_BUTTON_HEIGHT)) && Event.current.button == 0)
+        if(GUILayout.Button("FAVORITE", headerButtonStyle, GUILayout.Height(Layout.HEADER_BUTTON_HEIGHT)) && Event.current.button == 0)
         {
             foreach(var item in Selection.objects)
             {
@@ -143,13 +154,14 @@ public class FavoritesWindow : EditorWindow
                 }
             }
         }
-        if(GUILayout.Button("Clear Favorites", GUILayout.Height(Layout.HEADER_BUTTON_HEIGHT)) && Event.current.button == 0)
+        if(GUILayout.Button("CLEAR", headerButtonStyle, GUILayout.Height(Layout.HEADER_BUTTON_HEIGHT)) && Event.current.button == 0)
         {
             favorites.Clear();
             iconCache.Clear();
         }
 
         EditorGUILayout.EndHorizontal();
+        ChangeColorToNormal();
     }
     private void InitializeReorderableList()
     {
@@ -160,7 +172,6 @@ public class FavoritesWindow : EditorWindow
 
         reorderableList.elementHeight = Layout.BUTTON_HEIGHT + Layout.ROW_SPACING * 2;
     }
-
     private void DrawFavoriteItem(Rect rect, int index)
     {
         Object item = favorites[index];
@@ -200,20 +211,43 @@ public class FavoritesWindow : EditorWindow
         GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit);
 
         // draw text
-        GUIStyle centeredLabel = new GUIStyle(EditorStyles.label)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            clipping = TextClipping.Clip
-        };
-        GUI.Label(labelRect, item.name, centeredLabel);
+        GUI.Label(labelRect, item.name, centeredLabelStyle);
 
         // draw X button
-        GUI.color = colorRed;
-        if(GUI.Button(xButtonRect, "X") && Event.current.button == 0)
+        GUI.color = xButtonColor;
+        if(GUI.Button(xButtonRect, "X", xButtonStyle) && Event.current.button == 0)
         {
             pendingRemoveIndex = index;
         }
         ChangeColorToNormal();
+    }
+    private void InitializeStyles()
+    {
+        isStyleInitDone = true;
+
+        headerButtonStyle = new GUIStyle(GUI.skin.button);
+        headerButtonStyle.alignment = TextAnchor.MiddleCenter;
+        headerButtonStyle.fontStyle = FontStyle.Bold;
+        headerButtonStyle.fontSize = 14;
+        headerButtonStyle.normal.textColor = Color.white;
+
+        centeredLabelStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fontStyle = FontStyle.Bold
+        };
+
+        dropLabelStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            fontSize = 20,
+            fontStyle = FontStyle.Bold
+        };
+
+        xButtonStyle = new GUIStyle(GUI.skin.button);
+        xButtonStyle.alignment = TextAnchor.MiddleCenter;
+        xButtonStyle.fontStyle = FontStyle.Bold;
     }
     private void ChangeColorToNormal() => GUI.color = Color.white;
 }
