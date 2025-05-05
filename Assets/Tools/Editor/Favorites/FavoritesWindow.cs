@@ -39,6 +39,8 @@ public class FavoritesWindow : EditorWindow
     private int previousFavoritesCount = 0;
     private bool isDragging;
     private bool isStyleInitDone;
+    private bool isDraggingFromList;
+    private int dragStartIndex = -1;
 
     private GUIStyle headerButtonStyle;
     private GUIStyle dropLabelStyle;
@@ -95,39 +97,54 @@ public class FavoritesWindow : EditorWindow
 
         Rect windowRect = new Rect(0f, 0f, position.width, position.height);
 
+        // reset drag state if mouse is up
+        if(isDraggingFromList && Event.current.type == EventType.MouseUp)
+        {
+            isDraggingFromList = false;
+            dragStartIndex = -1;
+            Repaint();
+        }
+
         // drag and drop logic
         if(Event.current.type == EventType.DragUpdated || Event.current.type == EventType.DragPerform)
         {
             if(windowRect.Contains(Event.current.mousePosition))
             {
-                isDragging = true;
-                DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
-
-                Repaint();
-
-                if(Event.current.type == EventType.DragPerform)
+                // only show drop area if we are not dragging from list
+                if(!isDraggingFromList)
                 {
-                    DragAndDrop.AcceptDrag();
-                    foreach(var dragged in DragAndDrop.objectReferences)
-                    {
-                        if(dragged != null && !favorites.Contains(dragged))
-                        {
-                            favorites.Add(dragged);
-                            iconCache.Remove(dragged);
-                        }
-                    }
-                    isDragging = false;
-                    Event.current.Use();
+                    isDragging = true;
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+
                     Repaint();
+
+                    if(Event.current.type == EventType.DragPerform)
+                    {
+                        DragAndDrop.AcceptDrag();
+                        foreach(var dragged in DragAndDrop.objectReferences)
+                        {
+                            if(dragged != null && !favorites.Contains(dragged))
+                            {
+                                favorites.Add(dragged);
+                                iconCache.Remove(dragged);
+                            }
+                        }
+                        isDragging = false;
+                        Event.current.Use();
+                        Repaint();
+                    }
+                    Event.current.Use();
+                    return;
                 }
-                Event.current.Use();
-                return;
             }
         }
         else if(Event.current.type == EventType.DragExited)
         {
             isDragging = false;
+            isDraggingFromList = false;
+            dragStartIndex = -1;
             Repaint();
+            EditorGUIUtility.ExitGUI();
         }
 
         if(isDragging)
@@ -179,6 +196,8 @@ public class FavoritesWindow : EditorWindow
     private void OnLostFocus()
     {
         reorderableList.index = -1;
+        isDraggingFromList = false;
+        dragStartIndex = -1;
         Repaint();
     }
 
@@ -255,12 +274,34 @@ public class FavoritesWindow : EditorWindow
         Rect buttonRect = new Rect(rect.x, rect.y + verticalOffset, rect.width - Layout.X_BUTTON_WIDTH - 4f, Layout.BUTTON_HEIGHT);
         Rect xButtonRect = new Rect(rect.xMax - Layout.X_BUTTON_WIDTH, rect.y + verticalOffset, Layout.X_BUTTON_WIDTH, Layout.BUTTON_HEIGHT);
 
-        // draw empty button
-        if(GUI.Button(buttonRect, GUIContent.none) && Event.current.button == 0)
+        // Mouse down for potential drag start
+        if(Event.current.type == EventType.MouseDown && Event.current.button == 0 && buttonRect.Contains(Event.current.mousePosition))
+        {
+            dragStartIndex = index;
+            Event.current.Use(); // Consume the event
+        }
+        // Mouse drag for initiating drag operation
+        else if(Event.current.type == EventType.MouseDrag && dragStartIndex == index && buttonRect.Contains(Event.current.mousePosition))
+        {
+            DragAndDrop.PrepareStartDrag();
+            DragAndDrop.objectReferences = new Object[] { item };
+            DragAndDrop.StartDrag("Dragging favorite item");
+
+            isDraggingFromList = true;
+            dragStartIndex = -1;  // Reset drag start index
+            Event.current.Use();
+            return;
+        }
+        // Handle click normally if not dragging
+        else if(Event.current.type == EventType.MouseUp && Event.current.button == 0 && buttonRect.Contains(Event.current.mousePosition) && !isDraggingFromList)
         {
             Selection.activeObject = item;
             EditorGUIUtility.PingObject(item);
+            Event.current.Use();
         }
+
+        // draw empty button (only for visual representation now)
+        GUI.Button(buttonRect, GUIContent.none);
 
         // calculate icon position
         float iconSize = Layout.BUTTON_HEIGHT - 4f;
