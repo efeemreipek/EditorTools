@@ -301,7 +301,7 @@ public class FavoritesWindow : EditorWindow
         }
 
         // draw empty button (only for visual representation now)
-        GUI.Button(buttonRect, GUIContent.none);
+        GUI.Box(buttonRect, GUIContent.none);
 
         // calculate icon position
         float iconSize = Layout.BUTTON_HEIGHT - 4f;
