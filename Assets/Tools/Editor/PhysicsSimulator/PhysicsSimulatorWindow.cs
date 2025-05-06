@@ -99,14 +99,14 @@ public class PhysicsSimulatorWindow : EditorWindow
 
         if(isSimulating)
         {
-            if(GUILayout.Button("STOP", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT)))
+            if(GUILayout.Button("STOP", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT)) && Event.current.button == 0)
             {
                 StopSimulation();
             }
         }
         else
         {
-            if(GUILayout.Button("SIMULATE", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT)))
+            if(GUILayout.Button("SIMULATE", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT)) && Event.current.button == 0)
             {
                 if(simulationLength == 0)
                 {
@@ -157,13 +157,16 @@ public class PhysicsSimulatorWindow : EditorWindow
         {
             float deltaTime = Time.deltaTime > 0 ? Time.deltaTime : 0.01f;
             simulationTimer += deltaTime;
-
             accumulatedTime += deltaTime;
 
-            while(accumulatedTime >= Time.fixedDeltaTime)
+            int maxStepsPerFrame = 60;
+            int steps = 0;
+
+            while(accumulatedTime >= Time.fixedDeltaTime && steps < maxStepsPerFrame)
             {
                 Physics.Simulate(Time.fixedDeltaTime);
                 accumulatedTime -= Time.fixedDeltaTime;
+                steps++;
             }
 
             Repaint();
