@@ -19,9 +19,7 @@ public class PhysicsSimulatorWindow : EditorWindow
         public const float MIN_WINDOW_WIDTH = 300f;
         public const float MIN_WINDOW_HEIGHT = 300f;
         public const float BUTTON_HEIGHT = 40f;
-        public const float SEC_LABEL_WIDTH = 30f;
-        public const float PADDING = 5f;
-        public const float MARGIN = 5f;
+        public const float SPACE = 5f;
     }
 
     [MenuItem("Tools/Physics Simulator")]
@@ -32,11 +30,10 @@ public class PhysicsSimulatorWindow : EditorWindow
     private bool isSimulating;
     private Dictionary<GameObject, SimulationData> originalState = new Dictionary<GameObject, SimulationData>();
     private float accumulatedTime = 0f;
+    private bool isStylesInitDone;
 
-    private Rect boxRect;
-    private Rect fieldRect;
-    private Rect secLabelRect;
-    private Rect buttonRect;
+    private GUIStyle buttonStyle;
+    private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
 
     private void OnEnable()
     {
@@ -54,20 +51,30 @@ public class PhysicsSimulatorWindow : EditorWindow
     }
     private void OnGUI()
     {
+        if(!isStylesInitDone) InitializeStyles();
+
         minSize = new Vector2(Layout.MIN_WINDOW_WIDTH, Layout.MIN_WINDOW_HEIGHT);
 
-        CalculateRects();
+        EditorGUILayout.BeginVertical();
         DrawHeader();
+        EditorGUILayout.BeginVertical("Box");
+        GUILayout.Space(Layout.SPACE);
         DrawButton();
 
         if(isSimulating)
         {
+            GUILayout.Space(Layout.SPACE);
+
             EditorGUI.ProgressBar(
-                new Rect(Layout.PADDING, buttonRect.yMax + Layout.PADDING, position.width - Layout.PADDING * 2f, 20f),
+                EditorGUILayout.GetControlRect(),
                 simulationTimer / simulationLength,
                 $"Simulating: {simulationTimer:F2}s / {simulationLength:F2}s"
             );
         }
+
+        GUILayout.Space(Layout.SPACE);
+        EditorGUILayout.EndVertical();
+        EditorGUILayout.EndVertical();
 
         // if clicked on window, deselect, defocus
         if(Event.current.type == EventType.MouseDown && Event.current.button == 0)
@@ -76,55 +83,30 @@ public class PhysicsSimulatorWindow : EditorWindow
             Repaint();
         }
     }
-    private void CalculateRects()
-    {
-        buttonRect = new Rect(
-            Layout.PADDING,
-            boxRect.height + Layout.PADDING,
-            boxRect.width,
-            Layout.BUTTON_HEIGHT);
-
-        boxRect = new Rect(
-            Layout.PADDING,
-            Layout.PADDING,
-            position.width - Layout.PADDING * 2f,
-            EditorGUIUtility.singleLineHeight + Layout.PADDING * 2f
-            );
-
-        fieldRect = new Rect(
-            Layout.PADDING,
-            Layout.PADDING * 2f,
-            position.width - Layout.SEC_LABEL_WIDTH,
-            EditorGUIUtility.singleLineHeight);
-
-        secLabelRect = new Rect(
-            position.width - Layout.SEC_LABEL_WIDTH,
-            Layout.PADDING * 2f,
-            Layout.SEC_LABEL_WIDTH,
-            EditorGUIUtility.singleLineHeight);
-    }
     private void DrawHeader()
     {
-        GUI.Box(boxRect, GUIContent.none);
-
+        EditorGUILayout.BeginVertical("Box");
+        GUILayout.Space(Layout.SPACE);
         EditorGUI.BeginDisabledGroup(isSimulating);
-        simulationLength = Mathf.Max(0f, EditorGUI.FloatField(fieldRect, "Simulation Length", simulationLength));
+        simulationLength = Mathf.Max(0f, EditorGUILayout.FloatField("Simulation Length", simulationLength, GUILayout.ExpandWidth(true)));
         EditorGUI.EndDisabledGroup();
-
-        GUI.Label(secLabelRect, "sec", EditorStyles.centeredGreyMiniLabel);
+        GUILayout.Space(Layout.SPACE);
+        EditorGUILayout.EndVertical();
     }
     private void DrawButton()
     {
+        GUI.color = buttonColor;
+
         if(isSimulating)
         {
-            if(GUI.Button(buttonRect, "Stop Simulation"))
+            if(GUILayout.Button("STOP", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT)))
             {
                 StopSimulation();
             }
         }
         else
         {
-            if(GUI.Button(buttonRect, "Simulate"))
+            if(GUILayout.Button("SIMULATE", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT)))
             {
                 if(simulationLength == 0)
                 {
@@ -141,6 +123,18 @@ public class PhysicsSimulatorWindow : EditorWindow
                 HandleSimulation();
             }
         }
+
+        GUI.color = Color.white;
+    }
+    private void InitializeStyles()
+    {
+        isStylesInitDone = true;
+
+        buttonStyle = new GUIStyle(GUI.skin.button);
+        buttonStyle.alignment = TextAnchor.MiddleCenter;
+        buttonStyle.fontStyle = FontStyle.Bold;
+        buttonStyle.fontSize = 14;
+        buttonStyle.normal.textColor = Color.white;
     }
     private void HandleSimulation()
     {
@@ -181,7 +175,6 @@ public class PhysicsSimulatorWindow : EditorWindow
             StopSimulation();
         }
     }
-
     private void StopSimulation()
     {
         isSimulating = false;
