@@ -35,9 +35,13 @@ public class PhysicsSimulatorWindow : EditorWindow
     private GUIStyle buttonStyle;
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
 
+    private const string EDITOR_KEY_SIM_LENGTH = "PHYS_SIM_LENGTH";
+
     private void OnEnable()
     {
         EditorApplication.update += OnEditorUpdate;
+
+        simulationLength = EditorPrefs.GetFloat(EDITOR_KEY_SIM_LENGTH);
     }
     private void OnDisable()
     {
@@ -48,6 +52,8 @@ public class PhysicsSimulatorWindow : EditorWindow
             Physics.simulationMode = SimulationMode.FixedUpdate;
             RestoreOriginalState();
         }
+
+        EditorPrefs.SetFloat(EDITOR_KEY_SIM_LENGTH, simulationLength);
     }
     private void OnGUI()
     {
