@@ -78,7 +78,14 @@ public class PhysicsSimulatorWindow : EditorWindow
         {
             if(simulationLength == 0)
             {
-                EditorUtility.DisplayDialog("Invalid Value", "Simulation length must be positive", "OK");
+                EditorUtility.DisplayDialog("Invalid Value!", "Simulation length must be positive.", "OK");
+                return;
+            }
+
+            if(Selection.gameObjects.Length == 0)
+            {
+                EditorUtility.DisplayDialog("No Selected GameObjects!", "There must be at least one gameobject for simulation", "OK");
+                return;
             }
         }
     }
