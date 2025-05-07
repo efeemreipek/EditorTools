@@ -21,6 +21,11 @@ public class PhysicsSimulatorWindow : EditorWindow
         public const float BUTTON_HEIGHT = 40f;
         public const float SPACE = 5f;
     }
+    private enum ColliderType
+    {
+        BoxCollider,
+        SphereCollider
+    }
 
     [MenuItem("Tools/Physics Simulator")]
     public static void ShowWindow() => GetWindow<PhysicsSimulatorWindow>("Physics Simulator");
@@ -32,17 +37,20 @@ public class PhysicsSimulatorWindow : EditorWindow
     private float accumulatedTime = 0f;
     private bool isStylesInitDone;
     private bool isPaused;
+    private ColliderType colliderType;
 
     private GUIStyle buttonStyle;
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
 
     private const string EDITOR_KEY_SIM_LENGTH = "PHYS_SIM_LENGTH";
+    private const string EDITOR_KEY_COL_TYPE = "PHYS_SIM_COL";
 
     private void OnEnable()
     {
         EditorApplication.update += OnEditorUpdate;
 
         simulationLength = EditorPrefs.GetFloat(EDITOR_KEY_SIM_LENGTH);
+        colliderType = (ColliderType)EditorPrefs.GetInt(EDITOR_KEY_COL_TYPE);
     }
     private void OnDisable()
     {
@@ -55,6 +63,7 @@ public class PhysicsSimulatorWindow : EditorWindow
         }
 
         EditorPrefs.SetFloat(EDITOR_KEY_SIM_LENGTH, simulationLength);
+        EditorPrefs.SetInt(EDITOR_KEY_COL_TYPE, (int)colliderType);
     }
     private void OnGUI()
     {
@@ -95,7 +104,11 @@ public class PhysicsSimulatorWindow : EditorWindow
         EditorGUILayout.BeginVertical("Box");
         GUILayout.Space(Layout.SPACE);
         EditorGUI.BeginDisabledGroup(isSimulating);
+
         simulationLength = Mathf.Max(0f, EditorGUILayout.FloatField("Simulation Length", simulationLength, GUILayout.ExpandWidth(true)));
+        GUILayout.Space(Layout.SPACE);
+        colliderType = (ColliderType)EditorGUILayout.EnumPopup("Fallback Collider Type", colliderType);
+
         EditorGUI.EndDisabledGroup();
         GUILayout.Space(Layout.SPACE);
         EditorGUILayout.EndVertical();
@@ -286,7 +299,15 @@ public class PhysicsSimulatorWindow : EditorWindow
 
             if(go.GetComponent<Collider>() == null)
             {
-                Undo.AddComponent<BoxCollider>(go);
+                switch(colliderType)
+                {
+                    case ColliderType.BoxCollider:
+                        Undo.AddComponent<BoxCollider>(go);
+                        break;
+                    case ColliderType.SphereCollider:
+                        Undo.AddComponent<SphereCollider>(go);
+                        break;
+                }
             }
         }
         else
