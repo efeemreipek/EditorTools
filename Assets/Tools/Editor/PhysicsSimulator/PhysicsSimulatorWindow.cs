@@ -31,6 +31,7 @@ public class PhysicsSimulatorWindow : EditorWindow
     private Dictionary<GameObject, SimulationData> originalState = new Dictionary<GameObject, SimulationData>();
     private float accumulatedTime = 0f;
     private bool isStylesInitDone;
+    private bool isPaused;
 
     private GUIStyle buttonStyle;
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
@@ -103,9 +104,18 @@ public class PhysicsSimulatorWindow : EditorWindow
     {
         GUI.color = buttonColor;
 
+        EditorGUILayout.BeginHorizontal();
+
+        float buttonWidth = EditorGUIUtility.currentViewWidth * 0.5f - Layout.SPACE * 2f;
+
         if(isSimulating)
         {
-            if(GUILayout.Button("STOP", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT)) && Event.current.button == 0)
+            if(GUILayout.Button(isPaused ? "RESUME" : "PAUSE", buttonStyle, GUILayout.Width(buttonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)) && Event.current.button == 0)
+            {
+                isPaused = !isPaused;
+            }
+
+            if(GUILayout.Button("STOP", buttonStyle, GUILayout.Width(buttonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)) && Event.current.button == 0)
             {
                 StopSimulation();
             }
@@ -130,6 +140,7 @@ public class PhysicsSimulatorWindow : EditorWindow
             }
         }
 
+        EditorGUILayout.EndHorizontal();
         GUI.color = Color.white;
     }
     private void InitializeStyles()
@@ -158,6 +169,7 @@ public class PhysicsSimulatorWindow : EditorWindow
     private void OnEditorUpdate()
     {
         if(!isSimulating) return;
+        if(isPaused) return;
 
         if(simulationTimer < simulationLength)
         {
@@ -187,6 +199,7 @@ public class PhysicsSimulatorWindow : EditorWindow
     private void StopSimulation()
     {
         isSimulating = false;
+        isPaused = false;
 
         Physics.simulationMode = SimulationMode.FixedUpdate;
 
