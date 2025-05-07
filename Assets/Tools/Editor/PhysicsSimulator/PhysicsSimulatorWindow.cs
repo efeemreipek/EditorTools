@@ -38,12 +38,14 @@ public class PhysicsSimulatorWindow : EditorWindow
     private bool isStylesInitDone;
     private bool isPaused;
     private ColliderType colliderType;
+    private bool respectPhysicsHierarchy;
 
     private GUIStyle buttonStyle;
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
 
     private const string EDITOR_KEY_SIM_LENGTH = "PHYS_SIM_LENGTH";
     private const string EDITOR_KEY_COL_TYPE = "PHYS_SIM_COL";
+    private const string EDITOR_KEY_RESPECT_HIERARCHY = "PHYS_SIM_RESPECT_HIERARCHY";
 
     private void OnEnable()
     {
@@ -51,6 +53,7 @@ public class PhysicsSimulatorWindow : EditorWindow
 
         simulationLength = EditorPrefs.GetFloat(EDITOR_KEY_SIM_LENGTH);
         colliderType = (ColliderType)EditorPrefs.GetInt(EDITOR_KEY_COL_TYPE);
+        respectPhysicsHierarchy = EditorPrefs.GetBool(EDITOR_KEY_RESPECT_HIERARCHY);
     }
     private void OnDisable()
     {
@@ -64,6 +67,7 @@ public class PhysicsSimulatorWindow : EditorWindow
 
         EditorPrefs.SetFloat(EDITOR_KEY_SIM_LENGTH, simulationLength);
         EditorPrefs.SetInt(EDITOR_KEY_COL_TYPE, (int)colliderType);
+        EditorPrefs.SetBool(EDITOR_KEY_RESPECT_HIERARCHY, respectPhysicsHierarchy);
     }
     private void OnGUI()
     {
@@ -108,6 +112,12 @@ public class PhysicsSimulatorWindow : EditorWindow
         simulationLength = Mathf.Max(0f, EditorGUILayout.FloatField("Simulation Length", simulationLength, GUILayout.ExpandWidth(true)));
         GUILayout.Space(Layout.SPACE);
         colliderType = (ColliderType)EditorGUILayout.EnumPopup("Fallback Collider Type", colliderType);
+        GUILayout.Space(Layout.SPACE);
+        respectPhysicsHierarchy = EditorGUILayout.Toggle(new GUIContent(
+            "Respect Physics Hierarchy",
+            "When enabled, parent objects won't get physics components if their children already have them"),
+            respectPhysicsHierarchy,
+            GUILayout.ExpandWidth(true));
 
         EditorGUI.EndDisabledGroup();
         GUILayout.Space(Layout.SPACE);
@@ -233,71 +243,104 @@ public class PhysicsSimulatorWindow : EditorWindow
 
         foreach(GameObject go in Selection.gameObjects)
         {
-            SimulationData data = new SimulationData
-            {
-                Position = go.transform.position,
-                Rotation = go.transform.rotation,
-                HasRigidbody = go.GetComponent<Rigidbody>() != null,
-                WasKinematic = false,
-                Velocity = Vector3.zero,
-                AngularVelocity = Vector3.zero
-            };
-
-            Rigidbody rb = go.GetComponent<Rigidbody>();
-            if(rb != null)
-            {
-                data.WasKinematic = rb.isKinematic;
-                data.Velocity = rb.linearVelocity;
-                data.AngularVelocity = rb.angularVelocity;
-            }
-
-            originalState.Add(go, data);
+            StoreObjectState(go);
 
             // children
             foreach(Transform child in go.GetComponentsInChildren<Transform>())
             {
                 if(child.gameObject == go) continue;
 
-                rb = child.GetComponent<Rigidbody>();
-                if(rb != null)
-                {
-                    SimulationData childData = new SimulationData
-                    {
-                        Position = child.position,
-                        Rotation = child.rotation,
-                        HasRigidbody = true,
-                        WasKinematic = rb.isKinematic,
-                        Velocity = rb.linearVelocity,
-                        AngularVelocity = rb.angularVelocity
-                    };
-
-                    originalState.Add(child.gameObject, childData);
-                }
+                StoreObjectState(child.gameObject);
             }
         }
     }
+    private void StoreObjectState(GameObject go)
+    {
+        if(originalState.ContainsKey(go)) return;
+
+        SimulationData data = new SimulationData
+        {
+            Position = go.transform.position,
+            Rotation = go.transform.rotation,
+            HasRigidbody = go.GetComponent<Rigidbody>() != null,
+            WasKinematic = false,
+            Velocity = Vector3.zero,
+            AngularVelocity = Vector3.zero
+        };
+
+        Rigidbody rb = go.GetComponent<Rigidbody>();
+        if(rb != null)
+        {
+            data.WasKinematic = rb.isKinematic;
+            data.Velocity = rb.linearVelocity;
+            data.AngularVelocity = rb.angularVelocity;
+        }
+
+        originalState.Add(go, data);
+    }
     private void PrepareRigidbodies()
     {
+        Dictionary<GameObject, bool> hasPhysicsChildren = new Dictionary<GameObject, bool>();
+
+        if(respectPhysicsHierarchy)
+        {
+            foreach(GameObject go in Selection.gameObjects)
+            {
+                CollectPhysicsHierarchyInfo(go, hasPhysicsChildren);
+            }
+        }
+
         foreach(GameObject go in Selection.gameObjects)
         {
-            PrepareRigidbody(go);
+            PrepareRigidbody(go, hasPhysicsChildren);
 
             foreach(Transform child in go.GetComponentsInChildren<Transform>())
             {
                 if(child.gameObject == go) continue;
-                PrepareRigidbody(child.gameObject);
+                PrepareRigidbody(child.gameObject, hasPhysicsChildren);
             }   
         }
     }
-    private void PrepareRigidbody(GameObject go)
+
+    private void CollectPhysicsHierarchyInfo(GameObject go, Dictionary<GameObject, bool> hasPhysicsChildren)
+    {
+        bool hasPhysicsComponents = go.GetComponent<Rigidbody>() != null || go.GetComponent<Collider>() != null;
+        bool childrenHavePhysics = false;
+
+        foreach(Transform child in go.transform)
+        {
+            CollectPhysicsHierarchyInfo(child.gameObject, hasPhysicsChildren);
+
+            bool thisChildHasPhysics = child.GetComponent<Rigidbody>() != null ||
+                                       child.GetComponent<Collider>() != null ||
+                                       hasPhysicsChildren.ContainsKey(child.gameObject) && hasPhysicsChildren[child.gameObject];
+
+            if(thisChildHasPhysics)
+            {
+                childrenHavePhysics = true;
+            }
+        }
+
+        hasPhysicsChildren[go] = childrenHavePhysics;
+    }
+
+    private void PrepareRigidbody(GameObject go, Dictionary<GameObject, bool> hasPhysicsChildren)
     {
         Rigidbody rb = go.GetComponent<Rigidbody>();
+        bool hasCollider = go.GetComponent<Collider>() != null;
+
+        bool skipDueToHierarchy = respectPhysicsHierarchy &&
+                                  hasPhysicsChildren.ContainsKey(go) &&
+                                  hasPhysicsChildren[go] &&
+                                  rb == null;
+
+        if(skipDueToHierarchy) return;
 
         if(rb == null)
         {
             rb = Undo.AddComponent<Rigidbody>(go);
 
-            if(go.GetComponent<Collider>() == null)
+            if(!hasCollider)
             {
                 switch(colliderType)
                 {
