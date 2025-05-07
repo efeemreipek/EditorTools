@@ -20,6 +20,7 @@ public class PhysicsSimulatorWindow : EditorWindow
         public const float MIN_WINDOW_HEIGHT = 300f;
         public const float BUTTON_HEIGHT = 40f;
         public const float SPACE = 5f;
+        public const float TOGGLE_WIDTH = 16f;
     }
     private enum ColliderType
     {
@@ -113,11 +114,15 @@ public class PhysicsSimulatorWindow : EditorWindow
         GUILayout.Space(Layout.SPACE);
         colliderType = (ColliderType)EditorGUILayout.EnumPopup("Fallback Collider Type", colliderType);
         GUILayout.Space(Layout.SPACE);
-        respectPhysicsHierarchy = EditorGUILayout.Toggle(new GUIContent(
+
+        EditorGUILayout.BeginHorizontal();
+        float labelWidth = EditorGUIUtility.currentViewWidth - Layout.TOGGLE_WIDTH - Layout.SPACE * 4f;
+        GUIContent toggleLabel = new GUIContent(
             "Respect Physics Hierarchy",
-            "When enabled, parent objects won't get physics components if their children already have them"),
-            respectPhysicsHierarchy,
-            GUILayout.ExpandWidth(true));
+            "When enabled, parent objects won't get physics components if their children already have them");
+        EditorGUILayout.LabelField(toggleLabel, GUILayout.Width(labelWidth));
+        respectPhysicsHierarchy = EditorGUILayout.Toggle("", respectPhysicsHierarchy, GUILayout.Width(Layout.TOGGLE_WIDTH));
+        EditorGUILayout.EndHorizontal();
 
         EditorGUI.EndDisabledGroup();
         GUILayout.Space(Layout.SPACE);
