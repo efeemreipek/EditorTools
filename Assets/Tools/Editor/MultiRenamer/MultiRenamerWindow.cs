@@ -149,6 +149,8 @@ public class MultiRenamerWindow : EditorWindow
     }
     private void RenameObjects(Object[] objects)
     {
+        Undo.RecordObjects(objects, "Multi Rename");
+
         for(int i = 0;  i < objects.Length; i++)
         {
             Object obj = objects[i];
