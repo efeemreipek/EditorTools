@@ -10,6 +10,15 @@ public class MultiRenamerWindow : EditorWindow
         public const float SPACE = 5f;
         public const float BUTTON_HEIGHT = 40f;
     }
+    private enum NumberingStyle
+    {
+        [InspectorName("{NAME}###")]
+        Adjacent,
+        [InspectorName("{NAME}_###")]
+        Underscore,
+        [InspectorName("{NAME} (###)")]
+        Parenthesis
+    }
 
     [MenuItem("Tools/Multi Renamer")]
     public static void ShowWindow()
@@ -25,6 +34,11 @@ public class MultiRenamerWindow : EditorWindow
     private string prefix = string.Empty;
     private bool addSuffix;
     private string suffix = string.Empty;
+    private bool addNumbering;
+    private string numbering = string.Empty;
+    private NumberingStyle numberingStyle;
+    private int startNumber = 1;
+    private int padding = 2;
 
     private void OnGUI()
     {
@@ -35,6 +49,8 @@ public class MultiRenamerWindow : EditorWindow
         DrawPrefix();
         GUILayout.Space(Layout.SPACE);
         DrawSuffix();
+        GUILayout.Space(Layout.SPACE);
+        DrawNumbering();
         GUILayout.Space(Layout.SPACE);
         EditorGUILayout.EndVertical();
         DrawApplyButton();
@@ -50,7 +66,17 @@ public class MultiRenamerWindow : EditorWindow
     {
         EditorGUILayout.BeginVertical("Box");
         GUILayout.Label("PREVIEW", EditorStyles.centeredGreyMiniLabel);
-        EditorGUILayout.TextField(CombineName(Selection.objects), GUILayout.ExpandWidth(true), GUILayout.Height(30f));
+
+        if(Selection.objects.Length > 0)
+        {
+            string previewName = GetNewName(Selection.objects[0], 0);
+            EditorGUILayout.TextField(previewName, GUILayout.ExpandWidth(true), GUILayout.Height(30f));
+        }
+        else
+        {
+            EditorGUILayout.HelpBox("Select objects to preview renaming", MessageType.Info);
+        }
+
         EditorGUILayout.EndVertical();
     }
     private void DrawBaseName()
@@ -87,8 +113,21 @@ public class MultiRenamerWindow : EditorWindow
         }
         EditorGUILayout.EndVertical();
     }
+    private void DrawNumbering()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        addNumbering = EditorGUILayout.ToggleLeft("Add Numbering", addNumbering);
+        if(addNumbering)
+        {
+            numberingStyle = (NumberingStyle)EditorGUILayout.EnumPopup("Numbering Style", numberingStyle);
+            startNumber = EditorGUILayout.IntField("Start Number", startNumber);
+            padding = EditorGUILayout.IntSlider("Number Padding", padding, 1, 5);
+        }
+        EditorGUILayout.EndVertical();
+    }
     private void DrawApplyButton()
     {
+        GUI.enabled = Selection.objects.Length > 0;
         EditorGUILayout.BeginVertical("Box");
         if(GUILayout.Button("APPLY", GUILayout.Height(Layout.BUTTON_HEIGHT)) && Event.current.button == 0)
         {
@@ -98,33 +137,63 @@ public class MultiRenamerWindow : EditorWindow
             }
         }
         EditorGUILayout.EndVertical();
+        GUI.enabled = true;
     }
     private void RenameObjects(Object[] objects)
     {
-        foreach(var obj in Selection.objects)
+        for(int i = 0;  i < objects.Length; i++)
         {
-            RenameObject(obj);
-        }
-    }
-    private void RenameObject(Object obj)
-    {
-        if(obj is GameObject)
-        {
-            obj.name = newName;
-        }
-        else if(obj is Object)
-        {
-            var path = AssetDatabase.GetAssetPath(obj);
-            AssetDatabase.RenameAsset(path, newName);
-        }
-    }
-    private string CombineName(Object[] objects)
-    {
-        newName = string.Empty;
-        newName += addPrefix ? prefix : string.Empty;
-        newName += objects.Length > 0 ? (changeOriginalName ? baseName : objects[0].name) : string.Empty;
-        newName += addSuffix ? suffix : string.Empty;
+            Object obj = objects[i];
+            string newObjectName = GetNewName(obj, i);
 
-        return newName;
+            if(obj is GameObject)
+            {
+                obj.name = newObjectName;
+            }
+            else if(obj is Object)
+            {
+                var path = AssetDatabase.GetAssetPath(obj);
+                AssetDatabase.RenameAsset(path, newName);
+            }
+        }
+
+        AssetDatabase.Refresh();
+    }
+    private string GetNewName(Object obj, int index)
+    {
+        string originalName = obj.name;
+        string resultName = originalName;
+
+        if(changeOriginalName)
+        {
+            resultName = baseName;
+        }
+        if(addPrefix)
+        {
+            resultName = prefix + resultName;
+        }
+        if(addSuffix)
+        {
+            resultName = resultName + suffix;
+        }
+        if(addNumbering)
+        {
+            string paddedNumber = (startNumber + index).ToString().PadLeft(padding, '0');
+
+            switch(numberingStyle)
+            {
+                case NumberingStyle.Adjacent:
+                    resultName = resultName + paddedNumber;
+                    break;
+                case NumberingStyle.Underscore:
+                    resultName = resultName + "_" + paddedNumber;
+                    break;
+                case NumberingStyle.Parenthesis:
+                    resultName = resultName + " (" + paddedNumber + ")";
+                    break;
+            }
+        }
+
+        return resultName;
     }
 }
