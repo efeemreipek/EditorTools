@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,6 +21,27 @@ public class MultiRenamerWindow : EditorWindow
         Underscore,
         [InspectorName("{NAME} (###)")]
         Parenthesis
+    }
+    private enum CaseOption
+    {
+        [InspectorName("lowercase")]
+        Lowercase,
+        [InspectorName("UPPERCASE")]
+        Uppercase,
+        [InspectorName("Title Case")]
+        Titlecase,
+        [InspectorName("camelCase")]
+        Camelcase,
+        [InspectorName("PascalCase")]
+        Pascalcase,
+        [InspectorName("kebab-case")]
+        Kebabcase,
+        [InspectorName("snake_case")]
+        Snakecase,
+        [InspectorName("UPPER_SNAKE_CASE")]
+        UpperSnakecase,
+        [InspectorName("Train-Case")]
+        Traincase
     }
 
     [MenuItem("Tools/Multi Renamer")]
@@ -40,6 +64,8 @@ public class MultiRenamerWindow : EditorWindow
     private int startNumber = 1;
     private int padding = 2;
     private int maxCharacters = 64;
+    private bool useCaseOption;
+    private CaseOption caseOption;
 
     private void OnEnable()
     {
@@ -64,6 +90,8 @@ public class MultiRenamerWindow : EditorWindow
         DrawSuffix();
         GUILayout.Space(Layout.SPACE);
         DrawNumbering();
+        GUILayout.Space(Layout.SPACE);
+        DrawCaseOption();
         GUILayout.Space(Layout.SPACE);
         EditorGUILayout.EndVertical();
         DrawApplyButton();
@@ -146,6 +174,16 @@ public class MultiRenamerWindow : EditorWindow
         }
         EditorGUILayout.EndVertical();
     }
+    private void DrawCaseOption()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        useCaseOption = EditorGUILayout.ToggleLeft("Use Case Option", useCaseOption);
+        if(useCaseOption)
+        {
+            caseOption = (CaseOption)EditorGUILayout.EnumPopup("Case Option", caseOption);
+        }
+        EditorGUILayout.EndVertical();
+    }
     private void DrawApplyButton()
     {
         GUI.enabled = Selection.objects.Length > 0;
@@ -203,6 +241,10 @@ public class MultiRenamerWindow : EditorWindow
         {
             resultName = resultName.Substring(0, maxCharacters);
         }
+        if(useCaseOption)
+        {
+            resultName = ConvertCase(resultName, caseOption);
+        }
         if(addNumbering)
         {
             string paddedNumber = (startNumber + index).ToString().PadLeft(padding, '0');
@@ -222,5 +264,104 @@ public class MultiRenamerWindow : EditorWindow
         }
 
         return resultName;
+    }
+    private string ConvertCase(string text, CaseOption caseOption)
+    {
+        if(string.IsNullOrEmpty(text)) return text;
+
+        string[] words = SplitIntoWords(text);
+
+        switch(caseOption)
+        {
+            case CaseOption.Lowercase:
+                return text.ToLower();
+
+            case CaseOption.Uppercase:
+                return text.ToUpper();
+
+            case CaseOption.Titlecase:
+                TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+                return textInfo.ToTitleCase(text.ToLower());
+
+            case CaseOption.Camelcase:
+                StringBuilder camelCase = new StringBuilder();
+                for(int i = 0; i < words.Length; i++)
+                {
+                    if(string.IsNullOrEmpty(words[i])) continue;
+
+                    if(i == 0) camelCase.Append(words[i].ToLower());
+                    else camelCase.Append(char.ToUpper(words[i][0]) + words[i].Substring(1).ToLower());
+                }
+                return camelCase.ToString();
+
+            case CaseOption.Pascalcase:
+                StringBuilder pascalCase = new StringBuilder();
+                foreach(string word in words)
+                {
+                    if(string.IsNullOrEmpty(word)) continue;
+
+                    pascalCase.Append(char.ToUpper(word[0]) + word.Substring(1).ToLower());
+                }
+                return pascalCase.ToString();
+
+            case CaseOption.Kebabcase:
+                return string.Join("-", ConvertWordsToLower(words));
+
+            case CaseOption.Snakecase:
+                return string.Join("_", ConvertWordsToLower(words));
+
+            case CaseOption.UpperSnakecase:
+                return string.Join("_", ConvertWordsToUpper(words));
+
+            case CaseOption.Traincase:
+                string[] titleCaseWords = new string[words.Length];
+                for(int i = 0; i < words.Length; i++)
+                {
+                    if(string.IsNullOrEmpty(words[i])) continue;
+
+                    titleCaseWords[i] = char.ToUpper(words[i][0]) + words[i].Substring(1).ToLower();
+                }
+                return string.Join("-", titleCaseWords);
+            default:
+                return text;
+        }
+    }
+    private string[] SplitIntoWords(string text)
+    {
+        if(string.IsNullOrEmpty(text)) return new string[0];
+
+        string spaceSeparated = text
+            .Replace("_", " ")
+            .Replace("-", " ")
+            .Replace(".", " ");
+
+        spaceSeparated = Regex.Replace(spaceSeparated, "([a-z])([A-Z])", "$1 $2");
+
+        string[] words = spaceSeparated.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+
+        for(int i = 0;  i < words.Length; i++)
+        {
+            words[i] = words[i].Trim();
+        }
+
+        return words;
+    }
+    private string[] ConvertWordsToLower(string[] words)
+    {
+        string[] result = new string[words.Length];
+        for(int i = 0; i < words.Length; i++)
+        {
+            result[i] = words[i].ToLower();
+        }
+        return result;
+    }
+    private string[] ConvertWordsToUpper(string[] words)
+    {
+        string[] result = new string[words.Length];
+        for(int i = 0; i < words.Length; i++)
+        {
+            result[i] = words[i].ToUpper();
+        }
+        return result;
     }
 }
