@@ -40,6 +40,18 @@ public class MultiRenamerWindow : EditorWindow
     private int startNumber = 1;
     private int padding = 2;
 
+    private void OnEnable()
+    {
+        Selection.selectionChanged += OnSelectionChanged;
+    }
+    private void OnDisable()
+    {
+        Selection.selectionChanged -= OnSelectionChanged;
+    }
+    private void OnSelectionChanged()
+    {
+        Repaint();
+    }
     private void OnGUI()
     {
         DrawPreview();
