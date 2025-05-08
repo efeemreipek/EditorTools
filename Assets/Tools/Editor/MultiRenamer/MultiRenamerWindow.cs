@@ -12,6 +12,7 @@ public class MultiRenamerWindow : EditorWindow
         public const float MIN_WINDOW_HEIGHT = 300f;
         public const float SPACE = 5f;
         public const float BUTTON_HEIGHT = 40f;
+        public const float PREVIEW_HEIGHT = 40f;
     }
     private enum NumberingStyle
     {
@@ -66,6 +67,11 @@ public class MultiRenamerWindow : EditorWindow
     private int maxCharacters = 64;
     private bool useCaseOption;
     private CaseOption caseOption;
+    private bool isStylesInitDone;
+
+    private GUIStyle buttonStyle;
+    private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
+    private GUIStyle previewStyle;
 
     private void OnEnable()
     {
@@ -81,6 +87,8 @@ public class MultiRenamerWindow : EditorWindow
     }
     private void OnGUI()
     {
+        if(!isStylesInitDone) InitializeStyles();
+
         DrawPreview();
         EditorGUILayout.BeginVertical("Box");
         DrawBaseName();
@@ -103,6 +111,20 @@ public class MultiRenamerWindow : EditorWindow
             Repaint();
         }
     }
+    private void InitializeStyles()
+    {
+        isStylesInitDone = true;
+
+        buttonStyle = new GUIStyle(GUI.skin.button);
+        buttonStyle.alignment = TextAnchor.MiddleCenter;
+        buttonStyle.fontStyle = FontStyle.Bold;
+        buttonStyle.fontSize = 14;
+        buttonStyle.normal.textColor = Color.white;
+
+        previewStyle = new GUIStyle(EditorStyles.textArea);
+        previewStyle.fontSize = 20;
+        previewStyle.fontStyle = FontStyle.Bold;
+    }
     private void DrawPreview()
     {
         EditorGUILayout.BeginVertical("Box");
@@ -111,7 +133,8 @@ public class MultiRenamerWindow : EditorWindow
         if(Selection.objects.Length > 0)
         {
             string previewName = GetNewName(Selection.objects[0], 0);
-            EditorGUILayout.TextField(previewName, GUILayout.ExpandWidth(true), GUILayout.Height(30f));
+
+            EditorGUILayout.TextArea(previewName, previewStyle, GUILayout.ExpandWidth(true), GUILayout.Height(Layout.PREVIEW_HEIGHT));
         }
         else
         {
@@ -186,9 +209,10 @@ public class MultiRenamerWindow : EditorWindow
     }
     private void DrawApplyButton()
     {
+        GUI.color = buttonColor;
         GUI.enabled = Selection.objects.Length > 0;
         EditorGUILayout.BeginVertical("Box");
-        if(GUILayout.Button("APPLY", GUILayout.Height(Layout.BUTTON_HEIGHT)) && Event.current.button == 0)
+        if(GUILayout.Button("APPLY", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT)) && Event.current.button == 0)
         {
             if(Selection.objects.Length > 0)
             {
@@ -197,6 +221,7 @@ public class MultiRenamerWindow : EditorWindow
         }
         EditorGUILayout.EndVertical();
         GUI.enabled = true;
+        GUI.color = Color.white;
     }
     private void RenameObjects(Object[] objects)
     {
