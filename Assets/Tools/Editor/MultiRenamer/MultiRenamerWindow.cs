@@ -101,6 +101,10 @@ public class MultiRenamerWindow : EditorWindow
         {
             prefix = EditorGUILayout.TextField(new GUIContent("Prefix"), prefix);
         }
+        else
+        {
+            prefix = string.Empty;
+        }
         EditorGUILayout.EndVertical();
     }
     private void DrawSuffix()
@@ -110,6 +114,10 @@ public class MultiRenamerWindow : EditorWindow
         if(addSuffix)
         {
             suffix = EditorGUILayout.TextField(new GUIContent("Suffix"), suffix);
+        }
+        else
+        {
+            suffix = string.Empty;
         }
         EditorGUILayout.EndVertical();
     }
