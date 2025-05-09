@@ -74,6 +74,7 @@ public class MultiRenamerWindow : EditorWindow
     private bool useCaseOption;
     private CaseOption caseOption;
     private bool isStylesInitDone;
+    private Vector2 scrollPos;
 
     private GUIStyle buttonStyle;
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
@@ -96,7 +97,9 @@ public class MultiRenamerWindow : EditorWindow
         if(!isStylesInitDone) InitializeStyles();
 
         DrawPreview();
+
         EditorGUILayout.BeginVertical("Box");
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
         DrawBaseName();
         GUILayout.Space(Layout.SPACE);
         DrawPrefix();
@@ -109,7 +112,9 @@ public class MultiRenamerWindow : EditorWindow
         GUILayout.Space(Layout.SPACE);
         DrawCaseOption();
         GUILayout.Space(Layout.SPACE);
+        EditorGUILayout.EndScrollView();
         EditorGUILayout.EndVertical();
+
         DrawApplyButton();
 
         // if clicked on window, deselect, defocus
@@ -157,7 +162,9 @@ public class MultiRenamerWindow : EditorWindow
         changeOriginalName = EditorGUILayout.ToggleLeft("Change Original Name", changeOriginalName);
         if(changeOriginalName)
         {
+            EditorGUI.indentLevel++;
             baseName = EditorGUILayout.TextField(new GUIContent("New Base Name"), baseName);
+            EditorGUI.indentLevel--;
         }
         else
         {
@@ -171,7 +178,9 @@ public class MultiRenamerWindow : EditorWindow
         addPrefix = EditorGUILayout.ToggleLeft("Add Prefix", addPrefix);
         if(addPrefix)
         {
+            EditorGUI.indentLevel++;
             prefix = EditorGUILayout.TextField(new GUIContent("Prefix"), prefix);
+            EditorGUI.indentLevel--;
         }
         else
         {
@@ -185,7 +194,9 @@ public class MultiRenamerWindow : EditorWindow
         addSuffix = EditorGUILayout.ToggleLeft("Add Suffix", addSuffix);
         if(addSuffix)
         {
+            EditorGUI.indentLevel++;
             suffix = EditorGUILayout.TextField(new GUIContent("Suffix"), suffix);
+            EditorGUI.indentLevel--;
         }
         else
         {
@@ -199,17 +210,23 @@ public class MultiRenamerWindow : EditorWindow
         trim = EditorGUILayout.ToggleLeft("Trimming", trim);
         if(trim)
         {
+            EditorGUI.indentLevel++;
             trimStart = EditorGUILayout.Toggle("Trim Start", trimStart);
             if(trimStart)
             {
+                EditorGUI.indentLevel++;
                 trimStartChars = EditorGUILayout.IntSlider("Amount", trimStartChars, 0, 10);
+                EditorGUI.indentLevel--;
             }
             trimEnd = EditorGUILayout.Toggle("Trim End", trimEnd);
             if(trimEnd)
             {
+                EditorGUI.indentLevel++;
                 trimEndChars = EditorGUILayout.IntSlider("Amount", trimEndChars, 0, 10);
+                EditorGUI.indentLevel--;
             }
             trimUnityNumbering = EditorGUILayout.Toggle("Trim Unity Numbering", trimUnityNumbering);
+            EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndVertical();
     }
@@ -219,9 +236,11 @@ public class MultiRenamerWindow : EditorWindow
         addNumbering = EditorGUILayout.ToggleLeft("Add Numbering", addNumbering);
         if(addNumbering)
         {
+            EditorGUI.indentLevel++;
             numberingStyle = (NumberingStyle)EditorGUILayout.EnumPopup("Numbering Style", numberingStyle);
             startNumber = EditorGUILayout.IntField("Start Number", startNumber);
             padding = EditorGUILayout.IntSlider("Number Padding", padding, 1, 5);
+            EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndVertical();
     }
@@ -231,7 +250,9 @@ public class MultiRenamerWindow : EditorWindow
         useCaseOption = EditorGUILayout.ToggleLeft("Use Case Option", useCaseOption);
         if(useCaseOption)
         {
+            EditorGUI.indentLevel++;
             caseOption = (CaseOption)EditorGUILayout.EnumPopup("Case Option", caseOption);
+            EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndVertical();
     }
