@@ -12,7 +12,7 @@ public class MultiRenamerWindow : EditorWindow
         public const float MIN_WINDOW_HEIGHT = 300f;
         public const float SPACE = 5f;
         public const float BUTTON_HEIGHT = 40f;
-        public const float PREVIEW_HEIGHT = 40f;
+        public const float PREVIEW_HEIGHT = 55f;
     }
     private enum NumberingStyle
     {
@@ -135,6 +135,7 @@ public class MultiRenamerWindow : EditorWindow
         buttonStyle.normal.textColor = Color.white;
 
         previewStyle = new GUIStyle(EditorStyles.textArea);
+        previewStyle.alignment = TextAnchor.MiddleCenter;
         previewStyle.fontSize = 20;
         previewStyle.fontStyle = FontStyle.Bold;
     }
