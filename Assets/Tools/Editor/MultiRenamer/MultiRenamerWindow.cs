@@ -59,6 +59,12 @@ public class MultiRenamerWindow : EditorWindow
     private string prefix = string.Empty;
     private bool addSuffix;
     private string suffix = string.Empty;
+    private bool trim;
+    private bool trimStart;
+    private int trimStartChars;
+    private bool trimEnd;
+    private int trimEndChars;
+    private bool trimUnityNumbering;
     private bool addNumbering;
     private string numbering = string.Empty;
     private NumberingStyle numberingStyle;
@@ -96,6 +102,8 @@ public class MultiRenamerWindow : EditorWindow
         DrawPrefix();
         GUILayout.Space(Layout.SPACE);
         DrawSuffix();
+        GUILayout.Space(Layout.SPACE);
+        DrawTrimming();
         GUILayout.Space(Layout.SPACE);
         DrawNumbering();
         GUILayout.Space(Layout.SPACE);
@@ -185,6 +193,26 @@ public class MultiRenamerWindow : EditorWindow
         }
         EditorGUILayout.EndVertical();
     }
+    private void DrawTrimming()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        trim = EditorGUILayout.ToggleLeft("Trimming", trim);
+        if(trim)
+        {
+            trimStart = EditorGUILayout.Toggle("Trim Start", trimStart);
+            if(trimStart)
+            {
+                trimStartChars = EditorGUILayout.IntSlider("Amount", trimStartChars, 0, 10);
+            }
+            trimEnd = EditorGUILayout.Toggle("Trim End", trimEnd);
+            if(trimEnd)
+            {
+                trimEndChars = EditorGUILayout.IntSlider("Amount", trimEndChars, 0, 10);
+            }
+            trimUnityNumbering = EditorGUILayout.Toggle("Trim Unity Numbering", trimUnityNumbering);
+        }
+        EditorGUILayout.EndVertical();
+    }
     private void DrawNumbering()
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -253,6 +281,21 @@ public class MultiRenamerWindow : EditorWindow
         if(changeOriginalName)
         {
             resultName = baseName;
+        }
+        if(trim)
+        {
+            if(trimUnityNumbering)
+            {
+                resultName = Regex.Replace(resultName, @"^(.*?)(\s*\(\d+\))$", "$1");
+            }
+            if(trimStart && trimStartChars > 0 && resultName.Length > trimStartChars)
+            {
+                resultName = resultName.Substring(trimStartChars);
+            }
+            if(trimEnd && trimEndChars > 0 && resultName.Length > trimEndChars)
+            {
+                resultName = resultName.Substring(0, resultName.Length - trimEndChars);
+            }
         }
         if(addPrefix)
         {
