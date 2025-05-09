@@ -8,8 +8,8 @@ public class MultiRenamerWindow : EditorWindow
 {
     private static class Layout
     {
-        public const float MIN_WINDOW_WIDTH = 300f;
-        public const float MIN_WINDOW_HEIGHT = 300f;
+        public const float MIN_WINDOW_WIDTH = 400f;
+        public const float MIN_WINDOW_HEIGHT = 500f;
         public const float SPACE = 5f;
         public const float BUTTON_HEIGHT = 40f;
         public const float PREVIEW_HEIGHT = 55f;
