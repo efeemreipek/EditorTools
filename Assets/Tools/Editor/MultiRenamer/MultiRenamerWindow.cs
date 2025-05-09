@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -6,6 +8,40 @@ using UnityEngine;
 
 public class MultiRenamerWindow : EditorWindow
 {
+    [System.Serializable]
+    private class RenamerPreset
+    {
+        public string presetName;
+
+        public bool changeOriginalName;
+        public string baseName;
+
+        public bool addPrefix;
+        public string prefix;
+
+        public bool addSuffix;
+        public string suffix;
+
+        public bool trim;
+        public bool trimStart;
+        public int trimStartChars;
+        public bool trimEnd;
+        public int trimEndChars;
+        public bool trimUnityNumbering;
+
+        public bool addNumbering;
+        public NumberingStyle numberingStyle;
+        public int startNumber;
+        public int padding;
+
+        public bool useCaseOption;
+        public CaseOption caseOption;
+    }
+    [System.Serializable]
+    private class PresetsContainer
+    {
+        public List<RenamerPreset> presets;
+    }
     private static class Layout
     {
         public const float MIN_WINDOW_WIDTH = 400f;
@@ -75,13 +111,22 @@ public class MultiRenamerWindow : EditorWindow
     private bool isStylesInitDone;
     private Vector2 scrollPos;
 
+    private List<RenamerPreset> savedPresets = new List<RenamerPreset>();
+    private string newPresetName = "New Preset";
+    private int selectedPresetIndex = -1;
+    private bool presetsUnfolded = true;
+
     private GUIStyle buttonStyle;
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
     private GUIStyle previewStyle;
+    private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
+
+    private const string EDITOR_KEY_PRESETS = "MULTI_RENAMER_PRESETS";
 
     private void OnEnable()
     {
         Selection.selectionChanged += OnSelectionChanged;
+        LoadPresetsFromEditorPrefs();
     }
     private void OnDisable()
     {
@@ -114,6 +159,7 @@ public class MultiRenamerWindow : EditorWindow
         EditorGUILayout.EndScrollView();
         EditorGUILayout.EndVertical();
 
+        DrawPresets();
         DrawApplyButton();
 
         // if clicked on window, deselect, defocus
@@ -154,6 +200,91 @@ public class MultiRenamerWindow : EditorWindow
             EditorGUILayout.HelpBox("Select objects to preview renaming", MessageType.Info);
         }
 
+        EditorGUILayout.EndVertical();
+    }
+    private void DrawPresets()
+    {
+        EditorGUILayout.BeginVertical("Box");
+        presetsUnfolded = EditorGUILayout.Foldout(presetsUnfolded, "Presets", true);
+        if(presetsUnfolded)
+        {
+            // Main preset controls area
+            EditorGUILayout.BeginHorizontal();
+
+            // Left side - inputs and dropdown
+            EditorGUILayout.BeginVertical(GUILayout.ExpandWidth(true));
+
+            // New preset name field
+            EditorGUILayout.BeginHorizontal();
+            newPresetName = EditorGUILayout.TextField("New Preset Name", newPresetName);
+            EditorGUILayout.EndHorizontal();
+
+            // Saved presets dropdown with delete button
+            EditorGUILayout.BeginHorizontal();
+
+            string[] presetNames = savedPresets.Count > 0 ? savedPresets.Select(p => p.presetName).ToArray() : new string[] { "No presets" };
+
+            bool hasPresets = savedPresets.Count > 0;
+            GUI.enabled = hasPresets;
+
+            int newSelectedIndex = EditorGUILayout.Popup("Saved Presets", selectedPresetIndex >= 0 ? selectedPresetIndex : 0, presetNames, GUILayout.ExpandWidth(true));
+
+            if(hasPresets && newSelectedIndex != selectedPresetIndex)
+            {
+                selectedPresetIndex = newSelectedIndex;
+            }
+
+            // Delete button
+            if(hasPresets)
+            {
+                GUI.enabled = selectedPresetIndex >= 0;
+                GUI.color = xButtonColor;
+                if(GUILayout.Button("X", GUILayout.Width(25f), GUILayout.Height(20f)))
+                {
+                    if(selectedPresetIndex >= 0 && selectedPresetIndex < savedPresets.Count)
+                    {
+                        savedPresets.RemoveAt(selectedPresetIndex);
+                        if(savedPresets.Count > 0)
+                        {
+                            selectedPresetIndex = 0;
+                        }
+                        else
+                        {
+                            selectedPresetIndex = -1;
+                        }
+                        SavePresetsToEditorPrefs();
+                    }
+                }
+                GUI.color = Color.white;
+            }
+
+            GUI.enabled = true;
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+
+            // Right side - action buttons
+            EditorGUILayout.BeginVertical(GUILayout.Width(74f)); // Fixed width for buttons + spacing
+
+            GUI.color = buttonColor;
+            if(GUILayout.Button("SAVE", buttonStyle, GUILayout.Width(70f), GUILayout.Height(20f)))
+            {
+                SaveCurrentAsPreset();
+            }
+
+            GUI.enabled = hasPresets && selectedPresetIndex >= 0;
+            if(GUILayout.Button("LOAD", buttonStyle, GUILayout.Width(70f), GUILayout.Height(20f)))
+            {
+                if(selectedPresetIndex >= 0 && selectedPresetIndex < savedPresets.Count)
+                {
+                    LoadPreset(savedPresets[selectedPresetIndex]);
+                }
+            }
+            GUI.enabled = true;
+            GUI.color = Color.white;
+
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndHorizontal();
+        }
         EditorGUILayout.EndVertical();
     }
     private void DrawBaseName()
@@ -448,5 +579,112 @@ public class MultiRenamerWindow : EditorWindow
             result[i] = words[i].ToUpper();
         }
         return result;
+    }
+    private void SaveCurrentAsPreset()
+    {
+        if(string.IsNullOrEmpty(newPresetName))
+        {
+            EditorUtility.DisplayDialog("Invalid Name", "Please enter a valid preset name.", "OK");
+            return;
+        }
+
+        var preset = new RenamerPreset
+        {
+            presetName = newPresetName,
+
+            changeOriginalName = changeOriginalName,
+            baseName = baseName,
+
+            addPrefix = addPrefix,
+            prefix = prefix,
+
+            addSuffix = addSuffix,
+            suffix = suffix,
+
+            trim = trim,
+            trimStart = trimStart,
+            trimStartChars = trimStartChars,
+            trimEnd = trimEnd,
+            trimEndChars = trimEndChars,
+            trimUnityNumbering = trimUnityNumbering,
+
+            addNumbering = addNumbering,
+            numberingStyle = numberingStyle,
+            startNumber = startNumber,
+            padding = padding,
+
+            useCaseOption = useCaseOption,
+            caseOption = caseOption,
+        };
+
+        int existingIndex = savedPresets.FindIndex(p => p.presetName == newPresetName);
+        if(existingIndex >= 0)
+        {
+            bool replace = EditorUtility.DisplayDialog("Preset Already Exists",
+            $"A preset with the name '{newPresetName}' already exists. Do you want to replace it?",
+            "Replace", "Cancel");
+
+            if(replace)
+            {
+                savedPresets[existingIndex] = preset;
+                selectedPresetIndex = existingIndex;
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            savedPresets.Add(preset);
+            selectedPresetIndex = savedPresets.Count - 1;
+        }
+
+        SavePresetsToEditorPrefs();
+    }
+    private void LoadPreset(RenamerPreset preset)
+    {
+        changeOriginalName = preset.changeOriginalName;
+        baseName = preset.baseName;
+
+        addPrefix = preset.addPrefix;
+        prefix = preset.prefix;
+
+        addSuffix = preset.addSuffix;
+        suffix = preset.suffix;
+
+        trim = preset.trim;
+        trimStart = preset.trimStart;
+        trimStartChars = preset.trimStartChars;
+        trimEnd = preset.trimEnd;
+        trimEndChars = preset.trimEndChars;
+        trimUnityNumbering = preset.trimUnityNumbering;
+
+        addNumbering = preset.addNumbering;
+        numberingStyle = preset.numberingStyle;
+        startNumber = preset.startNumber;
+        padding = preset.padding;
+
+        useCaseOption = preset.useCaseOption;
+        caseOption = preset.caseOption;
+    }
+    private void SavePresetsToEditorPrefs()
+    {
+        var container = new PresetsContainer { presets = savedPresets };
+        string json = JsonUtility.ToJson(container);
+        EditorPrefs.SetString(EDITOR_KEY_PRESETS, json);
+    }
+    private void LoadPresetsFromEditorPrefs()
+    {
+        if(EditorPrefs.HasKey(EDITOR_KEY_PRESETS))
+        {
+            string json = EditorPrefs.GetString(EDITOR_KEY_PRESETS);
+            var container = JsonUtility.FromJson<PresetsContainer>(json);
+
+            if(container != null && container.presets != null)
+            {
+                savedPresets = container.presets;
+            }
+        }
     }
 }
