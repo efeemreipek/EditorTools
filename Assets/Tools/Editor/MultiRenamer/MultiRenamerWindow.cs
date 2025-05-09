@@ -70,7 +70,6 @@ public class MultiRenamerWindow : EditorWindow
     private NumberingStyle numberingStyle;
     private int startNumber = 1;
     private int padding = 2;
-    private int maxCharacters = 64;
     private bool useCaseOption;
     private CaseOption caseOption;
     private bool isStylesInitDone;
@@ -326,10 +325,6 @@ public class MultiRenamerWindow : EditorWindow
         if(addSuffix)
         {
             resultName = resultName + suffix;
-        }
-        if(resultName.Length > maxCharacters)
-        {
-            resultName = resultName.Substring(0, maxCharacters);
         }
         if(useCaseOption)
         {
