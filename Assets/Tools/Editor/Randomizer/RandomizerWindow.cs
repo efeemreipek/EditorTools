@@ -31,10 +31,16 @@ public class RandomizerWindow : EditorWindow
     private void OnEnable()
     {
         SceneView.duringSceneGui += OnSceneGUI;
+        Selection.selectionChanged += OnSelectionChanged;
     }
     private void OnDisable()
     {
         SceneView.duringSceneGui -= OnSceneGUI;
+        Selection.selectionChanged -= OnSelectionChanged;
+    }
+    private void OnSelectionChanged()
+    {
+        Repaint();
     }
     private void OnGUI()
     {
@@ -180,6 +186,10 @@ public class RandomizerWindow : EditorWindow
     }
     private void ApplyRandomChanges()
     {
+        if(doPosition)
+        {
+            ApplyRandomPosition();
+        }
         if(doScale)
         {
             ApplyRandomScale();
@@ -189,16 +199,49 @@ public class RandomizerWindow : EditorWindow
             ApplyRandomRotation();
         }
     }
-    private void ApplyRandomRotation()
+    private void ApplyRandomPosition()
     {
-        foreach(GameObject obj in Selection.gameObjects)
+        GameObject[] objects = Selection.gameObjects;
+        if(objects.Length == 0) return;
+
+        Vector3 originalCenter = FindCenterOfGameObjects(objects);
+
+        Vector3[] generatedOffsets = new Vector3[objects.Length];
+        Vector3 generatedCenter = Vector3.zero;
+
+        for(int i = 0; i < objects.Length; i++)
         {
-            if(obj == null) return;
+            Vector3 offset;
+            if(positionBoundIndex == 0) // Circle
+            {
+                Vector2 rnd2D = Random.insideUnitCircle * boundLength;
+                offset = new Vector3(rnd2D.x, 0f, rnd2D.y);
+            }
+            else // Square
+            {
+                offset = new Vector3(Random.Range(-boundLength, boundLength), 0f, Random.Range(-boundLength, boundLength));
+            }
 
-            Undo.RecordObject(obj.transform, "Random Rotation");
+            generatedOffsets[i] = offset;
+            generatedCenter += offset;
+        }
 
-            Vector3 randomRotation = new Vector3(Random.Range(0f, 360f), Random.Range(0f, 360f), Random.Range(0f, 360f));
-            obj.transform.rotation = Random.rotationUniform;
+        generatedCenter = generatedCenter / objects.Length;
+        for(int i = 0; i < generatedOffsets.Length; i++)
+        {
+            generatedOffsets[i] -= generatedCenter; // recenter around (0,0,0)
+        }
+
+        for(int i = 0; i < objects.Length; i++)
+        {
+            GameObject obj = objects[i];
+            if(obj == null) continue;
+
+            Undo.RecordObject(obj.transform, "Random Position");
+
+            Vector3 newPosition = originalCenter + generatedOffsets[i];
+            newPosition.y = obj.transform.position.y;
+            obj.transform.position = newPosition;
 
             EditorUtility.SetDirty(obj);
         }
@@ -233,6 +276,20 @@ public class RandomizerWindow : EditorWindow
             }
             float roundedScale = Mathf.Round(rawScale * decimalPlace) / decimalPlace;
             obj.transform.localScale = Vector3.one * roundedScale;
+
+            EditorUtility.SetDirty(obj);
+        }
+    }
+    private void ApplyRandomRotation()
+    {
+        foreach(GameObject obj in Selection.gameObjects)
+        {
+            if(obj == null) return;
+
+            Undo.RecordObject(obj.transform, "Random Rotation");
+
+            Vector3 randomRotation = new Vector3(Random.Range(0f, 360f), Random.Range(0f, 360f), Random.Range(0f, 360f));
+            obj.transform.rotation = Random.rotationUniform;
 
             EditorUtility.SetDirty(obj);
         }
