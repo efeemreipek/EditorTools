@@ -18,12 +18,24 @@ public class RandomizerWindow : EditorWindow
     }
 
     private int seed = 0;
-    private bool doRotation;
+    private bool doPosition;
+    private bool showGizmos;
+    private int positionBoundIndex = 0;
+    private float boundLength;
     private bool doScale;
     private float scaleLimitMin = 0.5f;
     private float scaleLimitMax = 2f;
     private int decimalPlacesIndex = 0;
+    private bool doRotation;
 
+    private void OnEnable()
+    {
+        SceneView.duringSceneGui += OnSceneGUI;
+    }
+    private void OnDisable()
+    {
+        SceneView.duringSceneGui -= OnSceneGUI;
+    }
     private void OnGUI()
     {
         EditorGUILayout.BeginHorizontal("Box");
@@ -37,12 +49,22 @@ public class RandomizerWindow : EditorWindow
         }
         EditorGUILayout.EndHorizontal();
 
+        if(Selection.gameObjects.Length == 0)
+        {
+            EditorGUILayout.HelpBox("There are no selected gameobjects", MessageType.Warning);
+        }
+        GUI.enabled = Selection.gameObjects.Length > 0;
+
         EditorGUILayout.BeginVertical("Box");
+        DrawPosition();
+        GUILayout.Space(Layout.SPACE);
         DrawScale();
         GUILayout.Space(Layout.SPACE);
         DrawRotation();
         GUILayout.Space(Layout.SPACE);
         EditorGUILayout.EndVertical();
+
+        GUI.enabled = true;
 
         // if clicked on window, deselect, defocus
         if(Event.current.type == EventType.MouseDown && Event.current.button == 0)
@@ -50,6 +72,55 @@ public class RandomizerWindow : EditorWindow
             GUI.FocusControl(null);
             Repaint();
         }
+    }
+    private void OnSceneGUI(SceneView sceneView)
+    {
+        if(showGizmos && Selection.gameObjects.Length > 0)
+        {
+            Vector3 centerPoint = FindCenterOfGameObjects(Selection.gameObjects);
+
+            switch(positionBoundIndex)
+            {
+                case 0:
+                    Handles.DrawWireDisc(centerPoint + Vector3.zero * 0.05f, Vector3.up, boundLength, 3f);
+                    break;
+                case 1:
+                    Vector3 squareVertex0 = centerPoint + new Vector3(-boundLength, 0f, boundLength);
+                    Vector3 squareVertex1 = centerPoint + new Vector3(boundLength, 0f, boundLength);
+                    Vector3 squareVertex2 = centerPoint + new Vector3(boundLength, 0f, -boundLength);
+                    Vector3 squareVertex3 = centerPoint + new Vector3(-boundLength, 0f, -boundLength);
+
+                    //Handles.DrawPolyLine(squareVertex0, squareVertex1, squareVertex2, squareVertex3, squareVertex0);
+                    Handles.DrawLine(squareVertex0, squareVertex1, 3f);
+                    Handles.DrawLine(squareVertex1, squareVertex2, 3f);
+                    Handles.DrawLine(squareVertex2, squareVertex3, 3f);
+                    Handles.DrawLine(squareVertex3, squareVertex0, 3f);
+                    break;
+                default:
+                    break;
+            }
+
+        }
+    }
+    private void DrawPosition()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        doPosition = EditorGUILayout.ToggleLeft("Position", doPosition);
+        if(doPosition)
+        {
+            EditorGUI.indentLevel++;
+
+            int newPositionBoundIndex = EditorGUILayout.Popup("Position Bound Style", positionBoundIndex, new string[] { "Circle", "Square" });
+            if(newPositionBoundIndex != positionBoundIndex)
+            {
+                positionBoundIndex = newPositionBoundIndex;
+            }
+            boundLength = EditorGUILayout.FloatField(positionBoundIndex == 0 ? "Bound Radius" : "Bound Size", boundLength);
+            showGizmos = EditorGUILayout.Toggle("Show Gizmos", showGizmos);
+
+            EditorGUI.indentLevel--;
+        }
+        EditorGUILayout.EndVertical();
     }
     private void DrawScale()
     {
@@ -87,6 +158,25 @@ public class RandomizerWindow : EditorWindow
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         doRotation = EditorGUILayout.ToggleLeft("Rotation", doRotation);
         EditorGUILayout.EndVertical();
+    }
+    private Vector3 FindCenterOfGameObjects(GameObject[] gameObjects)
+    {
+        float totalX = 0f;
+        float totalY = 0f;
+        float totalZ = 0f;
+
+        foreach(GameObject gameObject in gameObjects)
+        {
+            totalX += gameObject.transform.position.x;
+            totalY += gameObject.transform.position.y;
+            totalZ += gameObject.transform.position.z;
+        }
+
+        float centerX = totalX / gameObjects.Length;
+        float centerY = totalY / gameObjects.Length;
+        float centerZ = totalZ / gameObjects.Length;
+
+        return gameObjects.Length > 0 ? new Vector3(centerX, centerY, centerZ) : Vector3.zero;
     }
     private void ApplyRandomChanges()
     {
