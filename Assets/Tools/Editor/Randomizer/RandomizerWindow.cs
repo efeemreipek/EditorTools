@@ -19,9 +19,10 @@ public class RandomizerWindow : EditorWindow
 
     private int seed = 0;
     private bool doPosition;
-    private bool showGizmos;
     private int positionBoundIndex = 0;
     private float boundLength;
+    private bool preserveOriginalY;
+    private bool showGizmos;
     private bool doScale;
     private float scaleLimitMin = 0.5f;
     private float scaleLimitMax = 2f;
@@ -83,24 +84,13 @@ public class RandomizerWindow : EditorWindow
     {
         if(showGizmos && Selection.gameObjects.Length > 0)
         {
-            Vector3 centerPoint = FindCenterOfGameObjects(Selection.gameObjects);
-
             switch(positionBoundIndex)
             {
                 case 0:
-                    Handles.DrawWireDisc(centerPoint + Vector3.zero * 0.05f, Vector3.up, boundLength, 3f);
+                    DrawWireCircle();
                     break;
                 case 1:
-                    Vector3 squareVertex0 = centerPoint + new Vector3(-boundLength, 0f, boundLength);
-                    Vector3 squareVertex1 = centerPoint + new Vector3(boundLength, 0f, boundLength);
-                    Vector3 squareVertex2 = centerPoint + new Vector3(boundLength, 0f, -boundLength);
-                    Vector3 squareVertex3 = centerPoint + new Vector3(-boundLength, 0f, -boundLength);
-
-                    //Handles.DrawPolyLine(squareVertex0, squareVertex1, squareVertex2, squareVertex3, squareVertex0);
-                    Handles.DrawLine(squareVertex0, squareVertex1, 3f);
-                    Handles.DrawLine(squareVertex1, squareVertex2, 3f);
-                    Handles.DrawLine(squareVertex2, squareVertex3, 3f);
-                    Handles.DrawLine(squareVertex3, squareVertex0, 3f);
+                    DrawWireSquare();
                     break;
                 default:
                     break;
@@ -116,12 +106,13 @@ public class RandomizerWindow : EditorWindow
         {
             EditorGUI.indentLevel++;
 
-            int newPositionBoundIndex = EditorGUILayout.Popup("Position Bound Style", positionBoundIndex, new string[] { "Circle", "Square" });
+            int newPositionBoundIndex = EditorGUILayout.Popup("Bound Style", positionBoundIndex, new string[] { "Circle", "Square" });
             if(newPositionBoundIndex != positionBoundIndex)
             {
                 positionBoundIndex = newPositionBoundIndex;
             }
             boundLength = EditorGUILayout.FloatField(positionBoundIndex == 0 ? "Bound Radius" : "Bound Size", boundLength);
+            preserveOriginalY = EditorGUILayout.Toggle("Preserve Original Y", preserveOriginalY);
             showGizmos = EditorGUILayout.Toggle("Show Gizmos", showGizmos);
 
             EditorGUI.indentLevel--;
@@ -214,12 +205,27 @@ public class RandomizerWindow : EditorWindow
             Vector3 offset;
             if(positionBoundIndex == 0) // Circle
             {
-                Vector2 rnd2D = Random.insideUnitCircle * boundLength;
-                offset = new Vector3(rnd2D.x, 0f, rnd2D.y);
+                if(preserveOriginalY)
+                {
+                    Vector2 rnd2D = Random.insideUnitCircle * boundLength;
+                    offset = new Vector3(rnd2D.x, 0f, rnd2D.y);
+                }
+                else
+                {
+                    Vector3 rnd3D = Random.insideUnitSphere * boundLength;
+                    offset = rnd3D;
+                }
             }
             else // Square
             {
-                offset = new Vector3(Random.Range(-boundLength, boundLength), 0f, Random.Range(-boundLength, boundLength));
+                if(preserveOriginalY)
+                {
+                    offset = new Vector3(Random.Range(-boundLength, boundLength), 0f, Random.Range(-boundLength, boundLength));
+                }
+                else
+                {
+                    offset = new Vector3(Random.Range(-boundLength, boundLength), Random.Range(-boundLength, boundLength), Random.Range(-boundLength, boundLength));
+                }
             }
 
             generatedOffsets[i] = offset;
@@ -240,7 +246,10 @@ public class RandomizerWindow : EditorWindow
             Undo.RecordObject(obj.transform, "Random Position");
 
             Vector3 newPosition = originalCenter + generatedOffsets[i];
-            newPosition.y = obj.transform.position.y;
+            if(preserveOriginalY)
+            {
+                newPosition.y = obj.transform.position.y;
+            }
             obj.transform.position = newPosition;
 
             EditorUtility.SetDirty(obj);
@@ -292,6 +301,64 @@ public class RandomizerWindow : EditorWindow
             obj.transform.rotation = Random.rotationUniform;
 
             EditorUtility.SetDirty(obj);
+        }
+    }
+    private void DrawWireCircle()
+    {
+        Vector3 centerPoint = FindCenterOfGameObjects(Selection.gameObjects);
+
+        if(preserveOriginalY)
+        {
+            Handles.DrawWireDisc(centerPoint, Vector3.up, boundLength, 3f);
+        }
+        else
+        {
+            Handles.DrawWireDisc(centerPoint, Vector3.up, boundLength, 3f);
+            Handles.DrawWireDisc(centerPoint, Vector3.right, boundLength, 3f);
+            Handles.DrawWireDisc(centerPoint, Vector3.forward, boundLength, 3f);
+        }
+    }
+    private void DrawWireSquare()
+    {
+        Vector3 centerPoint = FindCenterOfGameObjects(Selection.gameObjects);
+
+        if(preserveOriginalY)
+        {
+            Vector3 squareVertex0 = centerPoint + new Vector3(-boundLength, 0f, boundLength);
+            Vector3 squareVertex1 = centerPoint + new Vector3(boundLength, 0f, boundLength);
+            Vector3 squareVertex2 = centerPoint + new Vector3(boundLength, 0f, -boundLength);
+            Vector3 squareVertex3 = centerPoint + new Vector3(-boundLength, 0f, -boundLength);
+
+            Handles.DrawLine(squareVertex0, squareVertex1, 3f);
+            Handles.DrawLine(squareVertex1, squareVertex2, 3f);
+            Handles.DrawLine(squareVertex2, squareVertex3, 3f);
+            Handles.DrawLine(squareVertex3, squareVertex0, 3f);
+        }
+        else
+        {
+            Vector3 cubeVertex0 = centerPoint + new Vector3(-boundLength, -boundLength, boundLength);
+            Vector3 cubeVertex1 = centerPoint + new Vector3(boundLength, -boundLength, boundLength);
+            Vector3 cubeVertex2 = centerPoint + new Vector3(boundLength, -boundLength, -boundLength);
+            Vector3 cubeVertex3 = centerPoint + new Vector3(-boundLength, -boundLength, -boundLength);
+            Vector3 cubeVertex4 = centerPoint + new Vector3(-boundLength, boundLength, boundLength);
+            Vector3 cubeVertex5 = centerPoint + new Vector3(boundLength, boundLength, boundLength);
+            Vector3 cubeVertex6 = centerPoint + new Vector3(boundLength, boundLength, -boundLength);
+            Vector3 cubeVertex7 = centerPoint + new Vector3(-boundLength, boundLength, -boundLength);
+
+            Handles.DrawLine(cubeVertex0, cubeVertex1, 3f);
+            Handles.DrawLine(cubeVertex1, cubeVertex2, 3f);
+            Handles.DrawLine(cubeVertex2, cubeVertex3, 3f);
+            Handles.DrawLine(cubeVertex3, cubeVertex0, 3f);
+
+            Handles.DrawLine(cubeVertex4, cubeVertex5, 3f);
+            Handles.DrawLine(cubeVertex5, cubeVertex6, 3f);
+            Handles.DrawLine(cubeVertex6, cubeVertex7, 3f);
+            Handles.DrawLine(cubeVertex7, cubeVertex4, 3f);
+
+            Handles.DrawLine(cubeVertex0, cubeVertex4, 3f);
+            Handles.DrawLine(cubeVertex1, cubeVertex5, 3f);
+            Handles.DrawLine(cubeVertex2, cubeVertex6, 3f);
+            Handles.DrawLine(cubeVertex3, cubeVertex7, 3f);
         }
     }
 }
