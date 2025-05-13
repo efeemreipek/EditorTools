@@ -29,15 +29,36 @@ public class RandomizerWindow : EditorWindow
     private int decimalPlacesIndex = 0;
     private bool doRotation;
 
+    private const string EDITOR_KEY_SEED = "RAND_SEED";
+    private const string EDITOR_KEY_BOUND_LENGTH = "RAND_BOUND_LENGTH";
+    private const string EDITOR_KEY_PRESERVE_ORIGINAL_Y = "RAND_PRESERVE_ORG_Y";
+    private const string EDITOR_KEY_SCALE_MIN = "RAND_SCALE_MIN";
+    private const string EDITOR_KEY_SCALE_MAX = "RAND_SCALE_MAX";
+    private const string EDITOR_KEY_DECIMAL_INDEX = "RAND_DECIMAL_INDEX";
+
     private void OnEnable()
     {
         SceneView.duringSceneGui += OnSceneGUI;
         Selection.selectionChanged += OnSelectionChanged;
+
+        seed = EditorPrefs.GetInt(EDITOR_KEY_SEED);
+        boundLength = EditorPrefs.GetFloat(EDITOR_KEY_BOUND_LENGTH);
+        preserveOriginalY = EditorPrefs.GetBool(EDITOR_KEY_PRESERVE_ORIGINAL_Y);
+        scaleLimitMin = EditorPrefs.GetFloat(EDITOR_KEY_SCALE_MIN);
+        scaleLimitMax = EditorPrefs.GetFloat(EDITOR_KEY_SCALE_MAX);
+        decimalPlacesIndex = EditorPrefs.GetInt(EDITOR_KEY_DECIMAL_INDEX);
     }
     private void OnDisable()
     {
         SceneView.duringSceneGui -= OnSceneGUI;
         Selection.selectionChanged -= OnSelectionChanged;
+
+        EditorPrefs.SetInt(EDITOR_KEY_SEED, seed);
+        EditorPrefs.SetFloat(EDITOR_KEY_BOUND_LENGTH, boundLength);
+        EditorPrefs.SetBool(EDITOR_KEY_PRESERVE_ORIGINAL_Y, preserveOriginalY);
+        EditorPrefs.SetFloat(EDITOR_KEY_SCALE_MIN, scaleLimitMin);
+        EditorPrefs.SetFloat(EDITOR_KEY_SCALE_MAX, scaleLimitMax);
+        EditorPrefs.SetInt(EDITOR_KEY_DECIMAL_INDEX, decimalPlacesIndex);
     }
     private void OnSelectionChanged()
     {
