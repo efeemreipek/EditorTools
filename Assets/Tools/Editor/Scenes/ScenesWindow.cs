@@ -13,9 +13,9 @@ public class ScenesWindow : EditorWindow
         public const float SPACE = 5f;
     }
     [Serializable]
-    private class SceneFolderPathsData
+    private class SceneFolderGUIDData
     {
-        public List<string> paths = new List<string>();
+        public List<string> guids = new List<string>();
     }
 
     [MenuItem("Tools/Scenes")]
@@ -27,7 +27,7 @@ public class ScenesWindow : EditorWindow
 
     private Vector2 scrollPos;
     private bool isStylesInitDone;
-    private List<string> sceneFolderPaths = new List<string>();
+    private List<string> sceneFolderGUIDs = new List<string>();
     private List<string> sceneAssetPaths = new List<string>();
 
     private GUIStyle headerStyle;
@@ -35,26 +35,26 @@ public class ScenesWindow : EditorWindow
 
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
 
-    private const string EDITOR_KEY_SCENE_FOLDER_PATHS = "SCENES_FOLDER_PATHS";
+    private const string EDITOR_KEY_SCENE_FOLDER_GUIDS = "SCENES_FOLDER_GUIDS";
 
     private void OnEnable()
     {
-        if(EditorPrefs.HasKey(EDITOR_KEY_SCENE_FOLDER_PATHS))
+        if(EditorPrefs.HasKey(EDITOR_KEY_SCENE_FOLDER_GUIDS))
         {
-            string json = EditorPrefs.GetString(EDITOR_KEY_SCENE_FOLDER_PATHS);
-            var data = JsonUtility.FromJson<SceneFolderPathsData>(json);
+            string json = EditorPrefs.GetString(EDITOR_KEY_SCENE_FOLDER_GUIDS);
+            var data = JsonUtility.FromJson<SceneFolderGUIDData>(json);
 
-            if(data != null && data.paths != null && data.paths.Count > 0)
+            if(data != null && data.guids != null && data.guids.Count > 0)
             {
-                sceneFolderPaths = data.paths;
+                sceneFolderGUIDs = data.guids;
             }
         }
     }
     private void OnDisable()
     {
-        var data = new SceneFolderPathsData() { paths = sceneFolderPaths };
+        var data = new SceneFolderGUIDData() { guids = sceneFolderGUIDs };
         string json = JsonUtility.ToJson(data);
-        EditorPrefs.SetString(EDITOR_KEY_SCENE_FOLDER_PATHS, json);
+        EditorPrefs.SetString(EDITOR_KEY_SCENE_FOLDER_GUIDS, json);
     }
     private void OnGUI()
     {
@@ -91,15 +91,17 @@ public class ScenesWindow : EditorWindow
     {
         sceneAssetPaths.Clear();
 
-        foreach(string folderPath in sceneFolderPaths)
+        foreach(string guid in sceneFolderGUIDs)
         {
+            string folderPath = AssetDatabase.GUIDToAssetPath(guid);
+
             if(string.IsNullOrEmpty(folderPath)) continue;
 
-            string[] guids = AssetDatabase.FindAssets("t:Scene", new string[] { folderPath });
+            string[] sceneGuids = AssetDatabase.FindAssets("t:Scene", new string[] { folderPath });
 
-            foreach(string guid in guids)
+            foreach(string sceneGuid in sceneGuids)
             {
-                string scenePath = AssetDatabase.GUIDToAssetPath(guid);
+                string scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
 
                 if(!string.IsNullOrEmpty(scenePath) && !sceneAssetPaths.Contains(scenePath))
                 {
@@ -138,16 +140,17 @@ public class ScenesWindow : EditorWindow
             if(!string.IsNullOrEmpty(fullPath) && fullPath.StartsWith(Application.dataPath))
             {
                 string relativePath = "Assets" + fullPath.Substring(Application.dataPath.Length);
+                string guid = AssetDatabase.AssetPathToGUID(relativePath);
 
-                if(!sceneFolderPaths.Contains(relativePath))
+                if(!string.IsNullOrEmpty(guid) && !sceneFolderGUIDs.Contains(guid))
                 {
-                    sceneFolderPaths.Add(relativePath);
+                    sceneFolderGUIDs.Add(guid);
                 }
             }
         }
         if(GUILayout.Button("CLEAR SCENE FOLDERS", buttonStyle) && Event.current.button == 0)
         {
-            sceneFolderPaths.Clear();
+            sceneFolderGUIDs.Clear();
         }
 
         GUI.color = Color.white;
