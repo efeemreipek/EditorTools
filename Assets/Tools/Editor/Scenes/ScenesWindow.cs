@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public class ScenesWindow : EditorWindow
@@ -22,6 +23,7 @@ public class ScenesWindow : EditorWindow
     private Vector2 scrollPos;
     private bool isStylesInitDone;
     private List<string> sceneFolderPaths = new List<string>();
+    private List<string> sceneAssetPaths = new List<string>();
 
     private GUIStyle headerStyle;
     private GUIStyle buttonStyle;
@@ -53,11 +55,44 @@ public class ScenesWindow : EditorWindow
         GUILayout.Space(Layout.SPACE);
 
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
-
+        DrawScenes();
         EditorGUILayout.EndScrollView();
 
         GUILayout.Space(Layout.SPACE);
         EditorGUILayout.EndVertical();
+    }
+    private void DrawScenes()
+    {
+        sceneAssetPaths.Clear();
+
+        foreach(string folderPath in sceneFolderPaths)
+        {
+            string relativePath = "Assets" + folderPath.Substring(Application.dataPath.Length);
+            string[] guids = AssetDatabase.FindAssets("t:Scene", new string[] { relativePath });
+
+            foreach(string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                sceneAssetPaths.Add(path);
+            }
+        }
+
+        foreach(string scenePath in sceneAssetPaths)
+        {
+            string sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+
+            GUI.color = buttonColor;
+
+            if(GUILayout.Button(sceneName, buttonStyle) && Event.current.button == 0)
+            {
+                if(EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                {
+                    EditorSceneManager.OpenScene(scenePath);
+                }
+            }
+
+            GUI.color = Color.white;
+        }
     }
     private void DrawControlButtons()
     {
@@ -67,11 +102,12 @@ public class ScenesWindow : EditorWindow
 
         if(GUILayout.Button("ADD SCENE FOLDER", buttonStyle) && Event.current.button == 0)
         {
-
+            string path = EditorUtility.OpenFolderPanel("Open Scene Folder", "", "");
+            sceneFolderPaths.Add(path);
         }
         if(GUILayout.Button("CLEAR SCENE FOLDERS", buttonStyle) && Event.current.button == 0)
         {
-
+            sceneFolderPaths.Clear();
         }
 
         GUI.color = Color.white;
