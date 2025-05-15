@@ -9,8 +9,9 @@ public class ScenesWindow : EditorWindow
     private class Layout
     {
         public const float MIN_WINDOW_WIDTH = 300f;
-        public const float MIN_WINDOW_HEIGHT = 300f;
+        public const float MIN_WINDOW_HEIGHT = 400f;
         public const float SPACE = 5f;
+        public const float BUTTON_HEIGHT = 50f;
     }
     [Serializable]
     private class SceneFolderGUIDData
@@ -29,11 +30,13 @@ public class ScenesWindow : EditorWindow
     private bool isStylesInitDone;
     private List<string> sceneFolderGUIDs = new List<string>();
     private List<string> sceneAssetPaths = new List<string>();
+    private bool isFolderViewOpen;
 
     private GUIStyle headerStyle;
     private GUIStyle buttonStyle;
 
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
+    private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
 
     private const string EDITOR_KEY_SCENE_FOLDER_GUIDS = "SCENES_FOLDER_GUIDS";
 
@@ -61,7 +64,14 @@ public class ScenesWindow : EditorWindow
         if(!isStylesInitDone) InitializeStyles();
 
         DrawHeader();
-        DrawScenesList();
+        if(isFolderViewOpen)
+        {
+            DrawFoldersList();
+        }
+        else
+        {
+            DrawScenesList();
+        }
         DrawControlButtons();
     }
 
@@ -70,7 +80,7 @@ public class ScenesWindow : EditorWindow
         EditorGUILayout.BeginVertical("Box");
         GUILayout.Space(Layout.SPACE);
 
-        EditorGUILayout.LabelField("SCENES", headerStyle);
+        EditorGUILayout.LabelField(isFolderViewOpen ? "FOLDERS" : "SCENES", headerStyle);
 
         GUILayout.Space(Layout.SPACE);
         EditorGUILayout.EndVertical();
@@ -127,13 +137,48 @@ public class ScenesWindow : EditorWindow
             GUI.color = Color.white;
         }
     }
+    private void DrawFoldersList()
+    {
+        EditorGUILayout.BeginVertical("Box");
+        GUILayout.Space(Layout.SPACE);
+
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+        DrawFolders();
+        EditorGUILayout.EndScrollView();
+
+        GUILayout.Space(Layout.SPACE);
+        EditorGUILayout.EndVertical();
+    }
+    private void DrawFolders()
+    {
+        for(int i = 0; i < sceneFolderGUIDs.Count; i++)
+        {
+            EditorGUILayout.BeginHorizontal("Box");
+
+            string folderPath = AssetDatabase.GUIDToAssetPath(sceneFolderGUIDs[i]);
+            EditorGUILayout.LabelField(folderPath, EditorStyles.boldLabel);
+
+            GUI.color = xButtonColor;
+            if(GUILayout.Button("X", buttonStyle, GUILayout.Width(Layout.BUTTON_HEIGHT * 0.5f), GUILayout.Height(Layout.BUTTON_HEIGHT * 0.5f)) && Event.current.button == 0)
+            {
+                sceneFolderGUIDs.RemoveAt(i);
+                GUIUtility.ExitGUI();
+            }
+            GUI.color = Color.white;
+
+            EditorGUILayout.EndHorizontal();
+        }
+    }
     private void DrawControlButtons()
     {
         EditorGUILayout.BeginVertical("Box");
+        EditorGUILayout.BeginHorizontal();
 
         GUI.color = buttonColor;
 
-        if(GUILayout.Button("ADD SCENE FOLDER", buttonStyle) && Event.current.button == 0)
+        float buttonWidth = EditorGUIUtility.currentViewWidth * 0.5f - Layout.SPACE * 2f;
+
+        if(GUILayout.Button("ADD SCENE FOLDER", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT), GUILayout.Width(buttonWidth)) && Event.current.button == 0)
         {
             string fullPath = EditorUtility.OpenFolderPanel("Open Scene Folder", "", "");
 
@@ -148,9 +193,16 @@ public class ScenesWindow : EditorWindow
                 }
             }
         }
-        if(GUILayout.Button("CLEAR SCENE FOLDERS", buttonStyle) && Event.current.button == 0)
+        if(GUILayout.Button("CLEAR SCENE FOLDERS", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT), GUILayout.Width(buttonWidth)) && Event.current.button == 0)
         {
             sceneFolderGUIDs.Clear();
+        }
+
+        EditorGUILayout.EndHorizontal();
+
+        if(GUILayout.Button(isFolderViewOpen ? "VIEW SCENES" : "VIEW FOLDERS", buttonStyle, GUILayout.Height(Layout.BUTTON_HEIGHT * 0.5f)) && Event.current.button == 0)
+        {
+            isFolderViewOpen = !isFolderViewOpen;
         }
 
         GUI.color = Color.white;
@@ -171,5 +223,6 @@ public class ScenesWindow : EditorWindow
         buttonStyle.fontStyle = FontStyle.Bold;
         buttonStyle.fontSize = 14;
         buttonStyle.normal.textColor = Color.white;
+        buttonStyle.wordWrap = true;
     }
 }
