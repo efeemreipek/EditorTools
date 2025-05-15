@@ -12,6 +12,11 @@ public class ScenesWindow : EditorWindow
         public const float MIN_WINDOW_HEIGHT = 300f;
         public const float SPACE = 5f;
     }
+    [Serializable]
+    private class SceneFolderPathsData
+    {
+        public List<string> paths = new List<string>();
+    }
 
     [MenuItem("Tools/Scenes")]
     public static void ShowWindow()
@@ -30,6 +35,27 @@ public class ScenesWindow : EditorWindow
 
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
 
+    private const string EDITOR_KEY_SCENE_FOLDER_PATHS = "SCENES_FOLDER_PATHS";
+
+    private void OnEnable()
+    {
+        if(EditorPrefs.HasKey(EDITOR_KEY_SCENE_FOLDER_PATHS))
+        {
+            string json = EditorPrefs.GetString(EDITOR_KEY_SCENE_FOLDER_PATHS);
+            var data = JsonUtility.FromJson<SceneFolderPathsData>(json);
+
+            if(data != null && data.paths != null && data.paths.Count > 0)
+            {
+                sceneFolderPaths = data.paths;
+            }
+        }
+    }
+    private void OnDisable()
+    {
+        var data = new SceneFolderPathsData() { paths = sceneFolderPaths };
+        string json = JsonUtility.ToJson(data);
+        EditorPrefs.SetString(EDITOR_KEY_SCENE_FOLDER_PATHS, json);
+    }
     private void OnGUI()
     {
         if(!isStylesInitDone) InitializeStyles();
@@ -67,13 +93,18 @@ public class ScenesWindow : EditorWindow
 
         foreach(string folderPath in sceneFolderPaths)
         {
-            string relativePath = "Assets" + folderPath.Substring(Application.dataPath.Length);
-            string[] guids = AssetDatabase.FindAssets("t:Scene", new string[] { relativePath });
+            if(string.IsNullOrEmpty(folderPath)) continue;
+
+            string[] guids = AssetDatabase.FindAssets("t:Scene", new string[] { folderPath });
 
             foreach(string guid in guids)
             {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                sceneAssetPaths.Add(path);
+                string scenePath = AssetDatabase.GUIDToAssetPath(guid);
+
+                if(!string.IsNullOrEmpty(scenePath) && !sceneAssetPaths.Contains(scenePath))
+                {
+                    sceneAssetPaths.Add(scenePath);
+                }
             }
         }
 
@@ -102,8 +133,17 @@ public class ScenesWindow : EditorWindow
 
         if(GUILayout.Button("ADD SCENE FOLDER", buttonStyle) && Event.current.button == 0)
         {
-            string path = EditorUtility.OpenFolderPanel("Open Scene Folder", "", "");
-            sceneFolderPaths.Add(path);
+            string fullPath = EditorUtility.OpenFolderPanel("Open Scene Folder", "", "");
+
+            if(!string.IsNullOrEmpty(fullPath) && fullPath.StartsWith(Application.dataPath))
+            {
+                string relativePath = "Assets" + fullPath.Substring(Application.dataPath.Length);
+
+                if(!sceneFolderPaths.Contains(relativePath))
+                {
+                    sceneFolderPaths.Add(relativePath);
+                }
+            }
         }
         if(GUILayout.Button("CLEAR SCENE FOLDERS", buttonStyle) && Event.current.button == 0)
         {
