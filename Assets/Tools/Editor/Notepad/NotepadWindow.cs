@@ -54,8 +54,10 @@ public class NotepadWindow : EditorWindow
     private NotePanelMode panelMode = NotePanelMode.None;
 
     private GUIStyle buttonStyle;
-    private GUIStyle textAreaStyle;
+    private GUIStyle textAreaFieldStyle;
     private GUIStyle textAreaLabelStyle;
+    private GUIStyle titleTextFieldStyle;
+    private GUIStyle titleLabelStyle;
 
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
 
@@ -78,8 +80,6 @@ public class NotepadWindow : EditorWindow
         DrawCreateButton();
         GUILayout.Space(Layout.SPACE * 0.8f);
         EditorGUILayout.EndVertical();
-
-        GUILayout.Space(Layout.SPACE);
 
         EditorGUILayout.BeginVertical();
         DrawNote();
@@ -168,6 +168,7 @@ public class NotepadWindow : EditorWindow
             Note newNote = new Note();
             notes.Add(newNote);
             selectedNoteIndex = notes.IndexOf(newNote);
+            panelMode = NotePanelMode.View;
         }
         GUI.color = Color.white;
         EditorGUILayout.EndHorizontal();
@@ -195,8 +196,8 @@ public class NotepadWindow : EditorWindow
         EditorGUILayout.BeginVertical();
 
         // HEADER
-        EditorGUILayout.BeginHorizontal("Box");
-        EditorGUILayout.LabelField(note.Title, EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal("Box", GUILayout.Height(40f));
+        EditorGUILayout.LabelField(note.Title, titleLabelStyle, GUILayout.ExpandHeight(true));
         EditorGUILayout.LabelField("NOTE TAGS");
         EditorGUILayout.EndHorizontal();
 
@@ -217,18 +218,18 @@ public class NotepadWindow : EditorWindow
         EditorGUILayout.BeginVertical();
 
         // HEADER
-        EditorGUILayout.BeginHorizontal("Box");
-        note.Title = EditorGUILayout.TextField(note.Title);
+        EditorGUILayout.BeginHorizontal("Box", GUILayout.Height(40f));
+        note.Title = EditorGUILayout.TextField(note.Title, titleTextFieldStyle, GUILayout.ExpandHeight(true));
         EditorGUILayout.LabelField("NOTE TAGS");
         EditorGUILayout.EndHorizontal();
 
         // CONTENT
         EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(true));
-        note.Content = EditorGUILayout.TextArea(note.Content, textAreaStyle, GUILayout.ExpandHeight(true));
+        note.Content = EditorGUILayout.TextArea(note.Content, textAreaFieldStyle, GUILayout.ExpandHeight(true));
         EditorGUILayout.EndVertical();
 
         // LINKED ELEMENTS
-        EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(true));
+        EditorGUILayout.BeginVertical("Box");
         EditorGUILayout.LabelField("LINKED ELEMENTS");
         EditorGUILayout.EndVertical();
 
@@ -263,12 +264,22 @@ public class NotepadWindow : EditorWindow
         buttonStyle.normal.textColor = Color.white;
         buttonStyle.wordWrap = true;
 
-        textAreaStyle = new GUIStyle(GUI.skin.textArea);
-        textAreaStyle.wordWrap = true;
-        textAreaStyle.fontSize = 12;
+        textAreaFieldStyle = new GUIStyle(GUI.skin.textArea);
+        textAreaFieldStyle.wordWrap = true;
+        textAreaFieldStyle.fontSize = 16;
 
         textAreaLabelStyle = new GUIStyle(GUI.skin.label);
         textAreaLabelStyle.wordWrap = true;
-        textAreaLabelStyle.fontSize = 12;
+        textAreaLabelStyle.fontSize = 16;
+
+        titleTextFieldStyle = new GUIStyle(GUI.skin.textField);
+        titleTextFieldStyle.alignment = TextAnchor.MiddleLeft;
+        titleTextFieldStyle.fontSize = 20;
+        titleTextFieldStyle.fontStyle = FontStyle.Bold;
+
+        titleLabelStyle = new GUIStyle(GUI.skin.label);
+        titleLabelStyle.alignment = TextAnchor.MiddleLeft;
+        titleLabelStyle.fontSize = 20;
+        titleLabelStyle.fontStyle = FontStyle.Bold;
     }
 }
