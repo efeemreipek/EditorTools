@@ -63,6 +63,7 @@ public class NotepadWindow : EditorWindow
     private GUIStyle titleLabelStyle;
 
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
+    private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
 
     private void OnGUI()
     {
@@ -147,9 +148,31 @@ public class NotepadWindow : EditorWindow
             EditorGUI.DrawRect(rect, new Color(0.3f, 0.5f, 0.85f, 0.3f));
         }
 
-        EditorGUI.LabelField(rect, note.Title, EditorStyles.boldLabel);
+        Rect labelRect = new Rect(rect.x + 5f, rect.y + 5f, rect.width - 35f, rect.height - 10f);
+        Rect xButtonRect = new Rect(rect.xMax - 35f, rect.y + 5f, 30f, 30f);
 
-        if(rect.Contains(e.mousePosition))
+        EditorGUI.LabelField(labelRect, note.Title, EditorStyles.boldLabel);
+
+        GUI.color = xButtonColor;
+        if(GUI.Button(xButtonRect, "X", buttonStyle) && e.button == 0)
+        {
+            notes.Remove(note);
+            if(selectedNoteIndex == index)
+            {
+                selectedNoteIndex = -1;
+            }
+            else if(selectedNoteIndex > index)
+            {
+                selectedNoteIndex--;
+            }
+
+            panelMode = NotePanelMode.None;
+            GUI.changed = true;
+            return;
+        }
+        GUI.color = Color.white;
+
+        if(rect.Contains(e.mousePosition) && !xButtonRect.Contains(e.mousePosition))
         {
             if(e.type == EventType.MouseDown &&  e.button == 0)
             {
