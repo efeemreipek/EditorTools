@@ -23,6 +23,12 @@ public class NotepadWindow : EditorWindow
     {
         public string Name;
     }
+    private enum NotePanelMode
+    {
+        None,
+        View,
+        Edit
+    }
 
     private class Layout
     {
@@ -45,8 +51,11 @@ public class NotepadWindow : EditorWindow
     private int selectedNoteIndex = -1;
     private List<Rect> noteElementRects = new List<Rect>();
     private Rect noteListRect;
+    private NotePanelMode panelMode = NotePanelMode.None;
 
     private GUIStyle buttonStyle;
+    private GUIStyle textAreaStyle;
+    private GUIStyle textAreaLabelStyle;
 
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
 
@@ -57,6 +66,8 @@ public class NotepadWindow : EditorWindow
         EditorGUILayout.BeginHorizontal();
 
         EditorGUILayout.BeginVertical(GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.3f));
+        GUILayout.Space(Layout.SPACE);
+
         DrawNoteList();
 
         if(Event.current.type == EventType.Repaint)
@@ -65,6 +76,7 @@ public class NotepadWindow : EditorWindow
         }
 
         DrawCreateButton();
+        GUILayout.Space(Layout.SPACE * 0.8f);
         EditorGUILayout.EndVertical();
 
         GUILayout.Space(Layout.SPACE);
@@ -135,11 +147,13 @@ public class NotepadWindow : EditorWindow
                 if(e.clickCount == 1)
                 {
                     selectedNoteIndex = index;
+                    panelMode = NotePanelMode.View;
                     GUI.changed = true;
                 }
                 else if(e.clickCount == 2)
                 {
-                    Debug.Log("Double clicked on note");
+                    selectedNoteIndex = index;
+                    panelMode = NotePanelMode.Edit;
                     e.Use();
                 }
             }
@@ -153,29 +167,87 @@ public class NotepadWindow : EditorWindow
         {
             Note newNote = new Note();
             notes.Add(newNote);
+            selectedNoteIndex = notes.IndexOf(newNote);
         }
         GUI.color = Color.white;
         EditorGUILayout.EndHorizontal();
     }
     private void DrawNote()
     {
-        EditorGUILayout.BeginVertical("Box");
+        if(selectedNoteIndex < 0 || selectedNoteIndex >= notes.Count)
+        {
+            return;
+        }
+
+        Note note = notes[selectedNoteIndex];
+
+        if(panelMode == NotePanelMode.View)
+        {
+            DrawNoteView(note);
+        }
+        else if(panelMode == NotePanelMode.Edit)
+        {
+            DrawNoteEdit(note);
+        }
+    }
+    private void DrawNoteView(Note note)
+    {
+        EditorGUILayout.BeginVertical();
 
         // HEADER
         EditorGUILayout.BeginHorizontal("Box");
-        EditorGUILayout.LabelField("NOTE TITLE");
+        EditorGUILayout.LabelField(note.Title, EditorStyles.boldLabel);
         EditorGUILayout.LabelField("NOTE TAGS");
         EditorGUILayout.EndHorizontal();
 
         // CONTENT
         EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(true));
-        EditorGUILayout.LabelField("NOTE CONTENT");
+        EditorGUILayout.LabelField(note.Content, textAreaLabelStyle);
         EditorGUILayout.EndVertical();
 
         // LINKED ELEMENTS
         EditorGUILayout.BeginVertical("Box");
         EditorGUILayout.LabelField("LINKED ELEMENTS");
         EditorGUILayout.EndVertical();
+
+        EditorGUILayout.EndVertical();
+    }
+    private void DrawNoteEdit(Note note)
+    {
+        EditorGUILayout.BeginVertical();
+
+        // HEADER
+        EditorGUILayout.BeginHorizontal("Box");
+        note.Title = EditorGUILayout.TextField(note.Title);
+        EditorGUILayout.LabelField("NOTE TAGS");
+        EditorGUILayout.EndHorizontal();
+
+        // CONTENT
+        EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(true));
+        note.Content = EditorGUILayout.TextArea(note.Content, textAreaStyle, GUILayout.ExpandHeight(true));
+        EditorGUILayout.EndVertical();
+
+        // LINKED ELEMENTS
+        EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(true));
+        EditorGUILayout.LabelField("LINKED ELEMENTS");
+        EditorGUILayout.EndVertical();
+
+        // CONTROL BUTTONS
+        EditorGUILayout.BeginHorizontal("Box");
+        float buttonWidth = EditorGUIUtility.currentViewWidth * 0.35f - Layout.SPACE * 2.5f; // half of currentViewWidth * 0.7f
+        GUI.color = buttonColor;
+        if(GUILayout.Button("SAVE", buttonStyle, GUILayout.Width(buttonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)))
+        {
+            panelMode = NotePanelMode.View;
+            Repaint();
+        }
+        if(GUILayout.Button("CANCEL", buttonStyle, GUILayout.Width(buttonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)))
+        {
+            panelMode = NotePanelMode.View;
+            Repaint();
+        }
+        GUI.color = Color.white;
+        EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.EndVertical();
     }
@@ -190,5 +262,13 @@ public class NotepadWindow : EditorWindow
         buttonStyle.fontSize = 14;
         buttonStyle.normal.textColor = Color.white;
         buttonStyle.wordWrap = true;
+
+        textAreaStyle = new GUIStyle(GUI.skin.textArea);
+        textAreaStyle.wordWrap = true;
+        textAreaStyle.fontSize = 12;
+
+        textAreaLabelStyle = new GUIStyle(GUI.skin.label);
+        textAreaLabelStyle.wordWrap = true;
+        textAreaLabelStyle.fontSize = 12;
     }
 }
