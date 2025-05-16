@@ -53,6 +53,9 @@ public class NotepadWindow : EditorWindow
     private Rect noteListRect;
     private NotePanelMode panelMode = NotePanelMode.None;
 
+    private string editingTitle = string.Empty;
+    private string editingContent = string.Empty;
+
     private GUIStyle buttonStyle;
     private GUIStyle textAreaFieldStyle;
     private GUIStyle textAreaLabelStyle;
@@ -159,6 +162,8 @@ public class NotepadWindow : EditorWindow
                 else if(e.clickCount == 2)
                 {
                     selectedNoteIndex = index;
+                    editingTitle = notes[index].Title;
+                    editingContent = notes[index].Content;  
                     panelMode = NotePanelMode.Edit;
                     e.Use();
                 }
@@ -174,7 +179,10 @@ public class NotepadWindow : EditorWindow
             Note newNote = new Note();
             notes.Add(newNote);
             selectedNoteIndex = notes.IndexOf(newNote);
-            panelMode = NotePanelMode.View;
+            editingTitle = newNote.Title;
+            editingContent = newNote.Content;
+
+            panelMode = NotePanelMode.Edit;
         }
         GUI.color = Color.white;
         EditorGUILayout.EndHorizontal();
@@ -225,13 +233,13 @@ public class NotepadWindow : EditorWindow
 
         // HEADER
         EditorGUILayout.BeginHorizontal("Box", GUILayout.Height(40f));
-        note.Title = EditorGUILayout.TextField(note.Title, titleTextFieldStyle, GUILayout.ExpandHeight(true));
+        editingTitle = EditorGUILayout.TextField(editingTitle, titleTextFieldStyle, GUILayout.ExpandHeight(true));
         EditorGUILayout.LabelField("NOTE TAGS");
         EditorGUILayout.EndHorizontal();
 
         // CONTENT
         EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(true));
-        note.Content = EditorGUILayout.TextArea(note.Content, textAreaFieldStyle, GUILayout.ExpandHeight(true));
+        editingContent = EditorGUILayout.TextArea(editingContent, textAreaFieldStyle, GUILayout.ExpandHeight(true));
         EditorGUILayout.EndVertical();
 
         // LINKED ELEMENTS
@@ -245,11 +253,17 @@ public class NotepadWindow : EditorWindow
         GUI.color = buttonColor;
         if(GUILayout.Button("SAVE", buttonStyle, GUILayout.Width(buttonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)))
         {
+            note.Title = editingTitle;
+            note.Content = editingContent;
+
             panelMode = NotePanelMode.View;
             Repaint();
         }
         if(GUILayout.Button("CANCEL", buttonStyle, GUILayout.Width(buttonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)))
         {
+            editingTitle = string.Empty;
+            editingContent = string.Empty;
+
             panelMode = NotePanelMode.View;
             Repaint();
         }
