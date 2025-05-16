@@ -98,9 +98,15 @@ public class NotepadWindow : EditorWindow
             bool insideNoteList = noteListRect.Contains(e.mousePosition);
             bool clickedOnAnyNote = noteElementRects.Any(r => r.Contains(e.mousePosition));
 
-            if(insideNoteList && !clickedOnAnyNote || !insideNoteList)
+            if(insideNoteList && !clickedOnAnyNote)
             {
                 selectedNoteIndex = -1;
+                GUI.FocusControl(null);
+                e.Use();
+                Repaint();
+            }
+            else if(!insideNoteList)
+            {
                 GUI.FocusControl(null);
                 e.Use();
                 Repaint();
