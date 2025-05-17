@@ -55,10 +55,10 @@ public class NotepadWindow : EditorWindow
     private NotePanelMode panelMode = NotePanelMode.None;
     private bool linkedElementsFolded;
     private Dictionary<Note, ReorderableList> viewLists = new Dictionary<Note, ReorderableList>();
-    private Dictionary<Note, ReorderableList> editLists = new Dictionary<Note, ReorderableList>();
 
     private string editingTitle = string.Empty;
     private string editingContent = string.Empty;
+    private List<Object> editingLinkedElements = new List<Object>();
 
     private GUIStyle buttonStyle;
     private GUIStyle textAreaFieldStyle;
@@ -190,9 +190,7 @@ public class NotepadWindow : EditorWindow
                 else if(e.clickCount == 2)
                 {
                     selectedNoteIndex = index;
-                    editingTitle = notes[index].Title;
-                    editingContent = notes[index].Content;  
-                    panelMode = NotePanelMode.Edit;
+                    PrepareNoteForEditing(notes[index]);
                     e.Use();
                 }
             }
@@ -209,6 +207,7 @@ public class NotepadWindow : EditorWindow
             selectedNoteIndex = notes.IndexOf(newNote);
             editingTitle = newNote.Title;
             editingContent = newNote.Content;
+            editingLinkedElements = new List<Object>();
 
             panelMode = NotePanelMode.Edit;
         }
@@ -280,7 +279,7 @@ public class NotepadWindow : EditorWindow
         // LINKED ELEMENTS
         EditorGUILayout.BeginVertical("Box", GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.2f));
         linkedElementsFolded = EditorGUILayout.Foldout(linkedElementsFolded, "Linked Elements", false, foldoutStyle);
-        if(linkedElementsFolded) GetOrCreateEditList(note).DoLayoutList();
+        if(linkedElementsFolded) GetTempEditList().DoLayoutList();
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.EndHorizontal();
@@ -291,16 +290,14 @@ public class NotepadWindow : EditorWindow
         GUI.color = buttonColor;
         if(GUILayout.Button("SAVE", buttonStyle, GUILayout.Width(buttonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)))
         {
-            note.Title = editingTitle;
-            note.Content = editingContent;
+            SaveNoteChanges(note);
 
             panelMode = NotePanelMode.View;
             Repaint();
         }
         if(GUILayout.Button("CANCEL", buttonStyle, GUILayout.Width(buttonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)))
         {
-            editingTitle = string.Empty;
-            editingContent = string.Empty;
+            CancelNoteEditing();
 
             panelMode = NotePanelMode.View;
             Repaint();
@@ -310,22 +307,49 @@ public class NotepadWindow : EditorWindow
 
         EditorGUILayout.EndVertical();
     }
-    private ReorderableList GetOrCreateEditList(Note note)
+    private void PrepareNoteForEditing(Note note)
     {
-        if(!editLists.TryGetValue(note, out var list))
+        editingTitle = note.Title;
+        editingContent = note.Content;
+        editingLinkedElements = new List<Object>(note.LinkedElements);
+
+        panelMode = NotePanelMode.Edit;
+    }
+    private void SaveNoteChanges(Note note)
+    {
+        note.Title = editingTitle;
+        note.Content = editingContent;
+
+        note.LinkedElements.Clear();
+        note.LinkedElements.AddRange(editingLinkedElements);
+
+        ClearEditingData();
+    }
+    private void CancelNoteEditing()
+    {
+        ClearEditingData();
+    }
+    private void ClearEditingData()
+    {
+        editingTitle = string.Empty;
+        editingContent = string.Empty;
+        editingLinkedElements.Clear();
+    }
+    private ReorderableList GetTempEditList()
+    {
+        ReorderableList list = new ReorderableList(editingLinkedElements, typeof(Object), true, false, true, true);
+        list.drawElementCallback = (rect, index, _, __) =>
         {
-            list = new ReorderableList(note.LinkedElements, typeof(Object), true, false, true, true);
-            list.drawElementCallback = (rect, index, _, __) =>
-            {
-                note.LinkedElements[index] = EditorGUI.ObjectField(
-                    new Rect(rect.x, rect.y + 5f, rect.width, EditorGUIUtility.singleLineHeight), note.LinkedElements[index], typeof(Object), true
-                    );
-            };
+            editingLinkedElements[index] = EditorGUI.ObjectField(
+                new Rect(rect.x, rect.y + 5f, rect.width, EditorGUIUtility.singleLineHeight),
+                editingLinkedElements[index],
+                typeof(Object),
+                true
+            );
+        };
 
-            list.elementHeight = EditorGUIUtility.singleLineHeight + 8f;
+        list.elementHeight = EditorGUIUtility.singleLineHeight + 8f;
 
-            editLists[note] = list;
-        }
         return list;
     }
     private ReorderableList GetOrCreateViewList(Note note)
@@ -336,7 +360,12 @@ public class NotepadWindow : EditorWindow
             list.drawElementCallback = (rect, index, _, __) =>
             {
                 EditorGUI.BeginDisabledGroup(true);
-                EditorGUI.ObjectField(new Rect(rect.x, rect.y + 5f, rect.width, EditorGUIUtility.singleLineHeight), note.LinkedElements[index], typeof(Object), true);
+                EditorGUI.ObjectField(
+                    new Rect(rect.x, rect.y + 5f, rect.width, EditorGUIUtility.singleLineHeight),
+                    note.LinkedElements[index],
+                    typeof(Object),
+                    true
+                    );
                 EditorGUI.EndDisabledGroup();
             };
 
