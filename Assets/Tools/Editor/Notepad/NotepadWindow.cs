@@ -54,7 +54,8 @@ public class NotepadWindow : EditorWindow
     private Rect noteListRect;
     private NotePanelMode panelMode = NotePanelMode.None;
     private bool linkedElementsFolded;
-    private Dictionary<Note, ReorderableList> noteToReorderableList = new Dictionary<Note, ReorderableList>();
+    private Dictionary<Note, ReorderableList> viewLists = new Dictionary<Note, ReorderableList>();
+    private Dictionary<Note, ReorderableList> editLists = new Dictionary<Note, ReorderableList>();
 
     private string editingTitle = string.Empty;
     private string editingContent = string.Empty;
@@ -252,7 +253,7 @@ public class NotepadWindow : EditorWindow
         // LINKED ELEMENTS
         EditorGUILayout.BeginVertical("Box", GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.2f));
         linkedElementsFolded = EditorGUILayout.Foldout(linkedElementsFolded, "Linked Elements", false, foldoutStyle);
-        if(linkedElementsFolded) GetOrCreateReorderableList(note).DoLayoutList();
+        if(linkedElementsFolded) GetOrCreateViewList(note).DoLayoutList();
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.EndHorizontal();
@@ -279,7 +280,7 @@ public class NotepadWindow : EditorWindow
         // LINKED ELEMENTS
         EditorGUILayout.BeginVertical("Box", GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.2f));
         linkedElementsFolded = EditorGUILayout.Foldout(linkedElementsFolded, "Linked Elements", false, foldoutStyle);
-        if(linkedElementsFolded) GetOrCreateReorderableList(note).DoLayoutList();
+        if(linkedElementsFolded) GetOrCreateEditList(note).DoLayoutList();
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.EndHorizontal();
@@ -309,26 +310,40 @@ public class NotepadWindow : EditorWindow
 
         EditorGUILayout.EndVertical();
     }
-    private ReorderableList GetOrCreateReorderableList(Note note)
+    private ReorderableList GetOrCreateEditList(Note note)
     {
-        if(noteToReorderableList.ContainsKey(note)) return noteToReorderableList[note];
-
-        var list = new ReorderableList(note.LinkedElements, typeof(Object), true, false, true, true);
-        list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+        if(!editLists.TryGetValue(note, out var list))
         {
-            note.LinkedElements[index] = EditorGUI.ObjectField(
-                new Rect(rect.x, rect.y + 5f, rect.width, EditorGUIUtility.singleLineHeight),
-                note.LinkedElements[index],
-                typeof(Object),
-                true
-                );
-        };
+            list = new ReorderableList(note.LinkedElements, typeof(Object), true, false, true, true);
+            list.drawElementCallback = (rect, index, _, __) =>
+            {
+                note.LinkedElements[index] = EditorGUI.ObjectField(
+                    new Rect(rect.x, rect.y + 5f, rect.width, EditorGUIUtility.singleLineHeight), note.LinkedElements[index], typeof(Object), true
+                    );
+            };
 
-        list.elementHeight = EditorGUIUtility.singleLineHeight + 8f;
+            list.elementHeight = EditorGUIUtility.singleLineHeight + 8f;
 
-        list.drawHeaderCallback = null;
+            editLists[note] = list;
+        }
+        return list;
+    }
+    private ReorderableList GetOrCreateViewList(Note note)
+    {
+        if(!viewLists.TryGetValue(note, out var list))
+        {
+            list = new ReorderableList(note.LinkedElements, typeof(Object), false, false, false, false);
+            list.drawElementCallback = (rect, index, _, __) =>
+            {
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUI.ObjectField(new Rect(rect.x, rect.y + 5f, rect.width, EditorGUIUtility.singleLineHeight), note.LinkedElements[index], typeof(Object), true);
+                EditorGUI.EndDisabledGroup();
+            };
 
-        noteToReorderableList[note] = list;
+            list.elementHeight = EditorGUIUtility.singleLineHeight + 8f;
+
+            viewLists[note] = list;
+        }
         return list;
     }
 
