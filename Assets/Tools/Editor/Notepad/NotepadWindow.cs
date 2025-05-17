@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEditorInternal;
 
 public class NotepadWindow : EditorWindow
 {
@@ -52,6 +53,8 @@ public class NotepadWindow : EditorWindow
     private List<Rect> noteElementRects = new List<Rect>();
     private Rect noteListRect;
     private NotePanelMode panelMode = NotePanelMode.None;
+    private bool linkedElementsFolded;
+    private Dictionary<Note, ReorderableList> noteToReorderableList = new Dictionary<Note, ReorderableList>();
 
     private string editingTitle = string.Empty;
     private string editingContent = string.Empty;
@@ -61,6 +64,7 @@ public class NotepadWindow : EditorWindow
     private GUIStyle textAreaLabelStyle;
     private GUIStyle titleTextFieldStyle;
     private GUIStyle titleLabelStyle;
+    private GUIStyle foldoutStyle;
 
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
     private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
@@ -71,7 +75,7 @@ public class NotepadWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal();
 
-        EditorGUILayout.BeginVertical(GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.3f));
+        EditorGUILayout.BeginVertical(GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.25f));
         GUILayout.Space(Layout.SPACE);
 
         DrawNoteList();
@@ -238,15 +242,20 @@ public class NotepadWindow : EditorWindow
         EditorGUILayout.LabelField("NOTE TAGS");
         EditorGUILayout.EndHorizontal();
 
+        EditorGUILayout.BeginHorizontal();
+
         // CONTENT
         EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(true));
         EditorGUILayout.LabelField(note.Content, textAreaLabelStyle);
         EditorGUILayout.EndVertical();
 
         // LINKED ELEMENTS
-        EditorGUILayout.BeginVertical("Box");
-        EditorGUILayout.LabelField("LINKED ELEMENTS");
+        EditorGUILayout.BeginVertical("Box", GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.2f));
+        linkedElementsFolded = EditorGUILayout.Foldout(linkedElementsFolded, "Linked Elements", false, foldoutStyle);
+        if(linkedElementsFolded) GetOrCreateReorderableList(note).DoLayoutList();
         EditorGUILayout.EndVertical();
+
+        EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.EndVertical();
     }
@@ -260,19 +269,24 @@ public class NotepadWindow : EditorWindow
         EditorGUILayout.LabelField("NOTE TAGS");
         EditorGUILayout.EndHorizontal();
 
+        EditorGUILayout.BeginHorizontal();
+
         // CONTENT
         EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(true));
         editingContent = EditorGUILayout.TextArea(editingContent, textAreaFieldStyle, GUILayout.ExpandHeight(true));
         EditorGUILayout.EndVertical();
 
         // LINKED ELEMENTS
-        EditorGUILayout.BeginVertical("Box");
-        EditorGUILayout.LabelField("LINKED ELEMENTS");
+        EditorGUILayout.BeginVertical("Box", GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.2f));
+        linkedElementsFolded = EditorGUILayout.Foldout(linkedElementsFolded, "Linked Elements", false, foldoutStyle);
+        if(linkedElementsFolded) GetOrCreateReorderableList(note).DoLayoutList();
         EditorGUILayout.EndVertical();
+
+        EditorGUILayout.EndHorizontal();
 
         // CONTROL BUTTONS
         EditorGUILayout.BeginHorizontal("Box");
-        float buttonWidth = EditorGUIUtility.currentViewWidth * 0.35f - Layout.SPACE * 2.5f; // half of currentViewWidth * 0.7f
+        float buttonWidth = EditorGUIUtility.currentViewWidth * 0.375f - Layout.SPACE * 2f; // half of currentViewWidth * 0.75f
         GUI.color = buttonColor;
         if(GUILayout.Button("SAVE", buttonStyle, GUILayout.Width(buttonWidth), GUILayout.Height(Layout.BUTTON_HEIGHT)))
         {
@@ -294,6 +308,28 @@ public class NotepadWindow : EditorWindow
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.EndVertical();
+    }
+    private ReorderableList GetOrCreateReorderableList(Note note)
+    {
+        if(noteToReorderableList.ContainsKey(note)) return noteToReorderableList[note];
+
+        var list = new ReorderableList(note.LinkedElements, typeof(Object), true, false, true, true);
+        list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+        {
+            note.LinkedElements[index] = EditorGUI.ObjectField(
+                new Rect(rect.x, rect.y + 5f, rect.width, EditorGUIUtility.singleLineHeight),
+                note.LinkedElements[index],
+                typeof(Object),
+                true
+                );
+        };
+
+        list.elementHeight = EditorGUIUtility.singleLineHeight + 8f;
+
+        list.drawHeaderCallback = null;
+
+        noteToReorderableList[note] = list;
+        return list;
     }
 
     private void InitializeStyles()
@@ -324,5 +360,9 @@ public class NotepadWindow : EditorWindow
         titleLabelStyle.alignment = TextAnchor.MiddleLeft;
         titleLabelStyle.fontSize = 20;
         titleLabelStyle.fontStyle = FontStyle.Bold;
+
+        foldoutStyle = new GUIStyle(EditorStyles.foldout);
+        foldoutStyle.fontSize = 14;
+        foldoutStyle.fontStyle = FontStyle.Bold;
     }
 }
