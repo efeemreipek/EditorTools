@@ -66,6 +66,7 @@ public class NotepadWindow : EditorWindow
     private GUIStyle titleTextFieldStyle;
     private GUIStyle titleLabelStyle;
     private GUIStyle foldoutStyle;
+    private GUIStyle noteLabelStyle;
 
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
     private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
@@ -156,7 +157,7 @@ public class NotepadWindow : EditorWindow
         Rect labelRect = new Rect(rect.x + 5f, rect.y + 5f, rect.width - 35f, rect.height - 10f);
         Rect xButtonRect = new Rect(rect.xMax - 35f, rect.y + 5f, 30f, 30f);
 
-        EditorGUI.LabelField(labelRect, note.Title, EditorStyles.boldLabel);
+        EditorGUI.LabelField(labelRect, note.Title, noteLabelStyle);
 
         GUI.color = xButtonColor;
         if(GUI.Button(xButtonRect, "X", buttonStyle) && e.button == 0)
@@ -408,5 +409,9 @@ public class NotepadWindow : EditorWindow
         foldoutStyle = new GUIStyle(EditorStyles.foldout);
         foldoutStyle.fontSize = 14;
         foldoutStyle.fontStyle = FontStyle.Bold;
+
+        noteLabelStyle = new GUIStyle(GUI.skin.label);
+        noteLabelStyle.fontSize = 14;
+        noteLabelStyle.fontStyle = FontStyle.Bold;
     }
 }
