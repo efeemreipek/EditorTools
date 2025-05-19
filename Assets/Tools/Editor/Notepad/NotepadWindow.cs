@@ -155,7 +155,7 @@ public class NotepadWindow : EditorWindow
 
         if(index == selectedNoteIndex)
         {
-            EditorGUI.DrawRect(rect, new Color(0.3f, 0.5f, 0.85f, 0.3f));
+            EditorGUI.DrawRect(rect, new Color(1f, 0.65f, 0.1f, 0.3f));
         }
 
         float titleHeight = 20f;
