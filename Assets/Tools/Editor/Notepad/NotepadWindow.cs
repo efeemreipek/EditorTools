@@ -55,10 +55,12 @@ public class NotepadWindow : EditorWindow
     private NotePanelMode panelMode = NotePanelMode.None;
     private bool linkedElementsFolded;
     private Dictionary<Note, ReorderableList> viewLists = new Dictionary<Note, ReorderableList>();
+    private bool isTagButtonClicked;
 
     private string editingTitle = string.Empty;
     private string editingContent = string.Empty;
     private List<Object> editingLinkedElements = new List<Object>();
+    private string editingTagName = string.Empty;
 
     private GUIStyle buttonStyle;
     private GUIStyle textAreaFieldStyle;
@@ -67,6 +69,7 @@ public class NotepadWindow : EditorWindow
     private GUIStyle titleLabelStyle;
     private GUIStyle foldoutStyle;
     private GUIStyle noteLabelStyle;
+    private GUIStyle tagLabelStyle;
 
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
     private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
@@ -209,6 +212,7 @@ public class NotepadWindow : EditorWindow
             editingTitle = newNote.Title;
             editingContent = newNote.Content;
             editingLinkedElements = new List<Object>();
+            isTagButtonClicked = false;
 
             panelMode = NotePanelMode.Edit;
         }
@@ -239,12 +243,21 @@ public class NotepadWindow : EditorWindow
 
         // HEADER
         EditorGUILayout.BeginHorizontal("Box", GUILayout.Height(40f));
-        EditorGUILayout.LabelField(note.Title, titleLabelStyle, GUILayout.ExpandHeight(true));
-        EditorGUILayout.LabelField("NOTE TAGS");
+        // TITLE
+        EditorGUILayout.LabelField(note.Title, titleLabelStyle, GUILayout.ExpandHeight(true), GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.45f));
+        // TAGS LABEL
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.LabelField("Tags", EditorStyles.boldLabel);
+        // TAGS
+        EditorGUILayout.BeginHorizontal();
+        DrawTags(note);
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.EndVertical();
+
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
-
         // CONTENT
         EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(true));
         EditorGUILayout.LabelField(note.Content, textAreaLabelStyle);
@@ -266,8 +279,47 @@ public class NotepadWindow : EditorWindow
 
         // HEADER
         EditorGUILayout.BeginHorizontal("Box", GUILayout.Height(40f));
-        editingTitle = EditorGUILayout.TextField(editingTitle, titleTextFieldStyle, GUILayout.ExpandHeight(true));
-        EditorGUILayout.LabelField("NOTE TAGS");
+        // TITLE
+        editingTitle = EditorGUILayout.TextField(editingTitle, titleTextFieldStyle, GUILayout.ExpandHeight(true), GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.45f));
+
+        EditorGUILayout.BeginVertical();
+
+        EditorGUILayout.BeginHorizontal();
+        // TAGS LABEL
+        EditorGUILayout.LabelField("Tags", EditorStyles.boldLabel, GUILayout.Width(50f));
+        // TAG BUTTON
+        if(note.NoteTags.Count < 3)
+        {
+            GUI.color = buttonColor;
+            if(GUILayout.Button("+", buttonStyle, GUILayout.Width(50f)))
+            {
+                isTagButtonClicked = !isTagButtonClicked;
+
+                if(!isTagButtonClicked)
+                {
+                    if(!string.IsNullOrEmpty(editingTagName))
+                    {
+                        CreateAndAddTag(editingTagName, note);
+                        editingTagName = string.Empty;
+                        Repaint();
+                    }
+                }
+            }
+            GUI.color = Color.white;
+            // TAG NAME FIELD
+            if(isTagButtonClicked)
+            {
+                editingTagName = EditorGUILayout.TextField(editingTagName);
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+        // TAGS
+        EditorGUILayout.BeginHorizontal();
+        DrawTags(note);
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.EndVertical();
+
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
@@ -322,7 +374,7 @@ public class NotepadWindow : EditorWindow
         note.Content = editingContent;
 
         note.LinkedElements.Clear();
-        note.LinkedElements.AddRange(editingLinkedElements);
+        note.LinkedElements.AddRange(editingLinkedElements);       
 
         ClearEditingData();
     }
@@ -335,6 +387,9 @@ public class NotepadWindow : EditorWindow
         editingTitle = string.Empty;
         editingContent = string.Empty;
         editingLinkedElements.Clear();
+
+        isTagButtonClicked = false;
+        editingTagName = string.Empty;
     }
     private ReorderableList GetTempEditList()
     {
@@ -376,6 +431,18 @@ public class NotepadWindow : EditorWindow
         }
         return list;
     }
+    private void DrawTags(Note note)
+    {
+        for(int i = 0; i < note.NoteTags.Count; i++)
+        {
+            EditorGUILayout.LabelField(note.NoteTags[i].Name, tagLabelStyle, GUILayout.Width(100f));
+        }
+    }
+    private void CreateAndAddTag(string editingTagName, Note note)
+    {
+        NoteTag tag = new NoteTag() { Name = editingTagName };
+        note.NoteTags.Add(tag);
+    }
 
     private void InitializeStyles()
     {
@@ -413,5 +480,9 @@ public class NotepadWindow : EditorWindow
         noteLabelStyle = new GUIStyle(GUI.skin.label);
         noteLabelStyle.fontSize = 14;
         noteLabelStyle.fontStyle = FontStyle.Bold;
+
+        tagLabelStyle = new GUIStyle("AssetLabel");
+        tagLabelStyle.alignment = TextAnchor.MiddleCenter;
+        tagLabelStyle.fontSize = 12;
     }
 }
