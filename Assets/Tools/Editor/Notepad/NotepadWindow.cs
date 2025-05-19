@@ -334,6 +334,7 @@ public class NotepadWindow : EditorWindow
                     isTagButtonClicked = true;
                     editingTagName = string.Empty;
                 }
+                GUI.FocusControl(null);
                 Repaint();
             }
             GUI.color = Color.white;
