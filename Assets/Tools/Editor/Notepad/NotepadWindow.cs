@@ -61,6 +61,7 @@ public class NotepadWindow : EditorWindow
     private string editingContent = string.Empty;
     private List<Object> editingLinkedElements = new List<Object>();
     private string editingTagName = string.Empty;
+    private List<NoteTag> editingNoteTags = new List<NoteTag>();
 
     private GUIStyle buttonStyle;
     private GUIStyle textAreaFieldStyle;
@@ -212,6 +213,7 @@ public class NotepadWindow : EditorWindow
             editingTitle = newNote.Title;
             editingContent = newNote.Content;
             editingLinkedElements = new List<Object>();
+            editingNoteTags = new List<NoteTag>();
             isTagButtonClicked = false;
 
             panelMode = NotePanelMode.Edit;
@@ -250,7 +252,7 @@ public class NotepadWindow : EditorWindow
         EditorGUILayout.LabelField("Tags", EditorStyles.boldLabel);
         // TAGS
         EditorGUILayout.BeginHorizontal();
-        DrawTags(note);
+        DrawTags(note.NoteTags);
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.EndVertical();
@@ -288,22 +290,26 @@ public class NotepadWindow : EditorWindow
         // TAGS LABEL
         EditorGUILayout.LabelField("Tags", EditorStyles.boldLabel, GUILayout.Width(50f));
         // TAG BUTTON
-        if(note.NoteTags.Count < 3)
+        if(editingNoteTags.Count < 3)
         {
             GUI.color = buttonColor;
             if(GUILayout.Button("+", buttonStyle, GUILayout.Width(50f)))
             {
-                isTagButtonClicked = !isTagButtonClicked;
-
-                if(!isTagButtonClicked)
+                if(isTagButtonClicked)
                 {
                     if(!string.IsNullOrEmpty(editingTagName))
                     {
                         CreateAndAddTag(editingTagName, note);
                         editingTagName = string.Empty;
-                        Repaint();
                     }
+                    isTagButtonClicked = false;
                 }
+                else
+                {
+                    isTagButtonClicked = true;
+                    editingTagName = string.Empty;
+                }
+                Repaint();
             }
             GUI.color = Color.white;
             // TAG NAME FIELD
@@ -315,7 +321,7 @@ public class NotepadWindow : EditorWindow
         EditorGUILayout.EndHorizontal();
         // TAGS
         EditorGUILayout.BeginHorizontal();
-        DrawTags(note);
+        DrawEditingTags();
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.EndVertical();
@@ -366,6 +372,12 @@ public class NotepadWindow : EditorWindow
         editingContent = note.Content;
         editingLinkedElements = new List<Object>(note.LinkedElements);
 
+        editingNoteTags = new List<NoteTag>();
+        foreach(var tag in note.NoteTags)
+        {
+            editingNoteTags.Add(new NoteTag() { Name = tag.Name });
+        }
+
         panelMode = NotePanelMode.Edit;
     }
     private void SaveNoteChanges(Note note)
@@ -375,6 +387,9 @@ public class NotepadWindow : EditorWindow
 
         note.LinkedElements.Clear();
         note.LinkedElements.AddRange(editingLinkedElements);       
+
+        note.NoteTags.Clear();
+        note.NoteTags.AddRange(editingNoteTags);
 
         ClearEditingData();
     }
@@ -431,17 +446,35 @@ public class NotepadWindow : EditorWindow
         }
         return list;
     }
-    private void DrawTags(Note note)
+    private void DrawTags(List<NoteTag> tags)
     {
-        for(int i = 0; i < note.NoteTags.Count; i++)
+        for(int i = 0; i < tags.Count; i++)
         {
-            EditorGUILayout.LabelField(note.NoteTags[i].Name, tagLabelStyle, GUILayout.Width(100f));
+            EditorGUILayout.LabelField(tags[i].Name, tagLabelStyle, GUILayout.Width(100f));
+        }
+    }
+    private void DrawEditingTags()
+    {
+        for(int i = 0; i < editingNoteTags.Count; i++)
+        {
+            EditorGUILayout.BeginHorizontal(GUILayout.Width(100f));
+
+            EditorGUILayout.LabelField(editingNoteTags[i].Name, tagLabelStyle, GUILayout.Width(80f));
+
+            GUI.color = xButtonColor;
+            if(GUILayout.Button("x", GUILayout.Width(20f), GUILayout.Height(18f)))
+            {
+                editingNoteTags.RemoveAt(i);
+            }
+            GUI.color = Color.white;
+
+            EditorGUILayout.EndHorizontal();
         }
     }
     private void CreateAndAddTag(string editingTagName, Note note)
     {
         NoteTag tag = new NoteTag() { Name = editingTagName };
-        note.NoteTags.Add(tag);
+        editingNoteTags.Add(tag);
     }
 
     private void InitializeStyles()
