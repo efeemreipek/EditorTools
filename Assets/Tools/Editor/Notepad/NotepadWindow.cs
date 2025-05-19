@@ -473,27 +473,36 @@ public class NotepadWindow : EditorWindow
     }
     private void DrawTags(List<NoteTag> tags)
     {
-        for(int i = 0; i < tags.Count; i++)
+        foreach(var tag in tags)
         {
-            EditorGUILayout.LabelField(tags[i].Name, tagLabelStyle, GUILayout.Width(100f));
+            GUIContent content = new GUIContent(tag.Name);
+            Vector2 size = tagLabelStyle.CalcSize(content);
+            EditorGUILayout.LabelField(content, tagLabelStyle, GUILayout.Width(size.x + 10f));
+            GUILayout.Space(5f);
         }
     }
     private void DrawEditingTags()
     {
         for(int i = 0; i < editingNoteTags.Count; i++)
         {
-            EditorGUILayout.BeginHorizontal(GUILayout.Width(100f));
+            GUIContent content = new GUIContent(editingNoteTags[i].Name);
+            Vector2 labelSize = tagLabelStyle.CalcSize(content);
+            float labelWidth = labelSize.x + 10f;
 
-            EditorGUILayout.LabelField(editingNoteTags[i].Name, tagLabelStyle, GUILayout.Width(80f));
+            EditorGUILayout.BeginHorizontal(GUILayout.Width(labelWidth + 20f));
+
+            EditorGUILayout.LabelField(content, tagLabelStyle, GUILayout.Width(labelWidth));
 
             GUI.color = xButtonColor;
-            if(GUILayout.Button("x", GUILayout.Width(20f), GUILayout.Height(18f)))
+            if(GUILayout.Button("X", GUILayout.Width(20f), GUILayout.Height(18f)))
             {
                 editingNoteTags.RemoveAt(i);
+                i--;
             }
             GUI.color = Color.white;
 
             EditorGUILayout.EndHorizontal();
+            GUILayout.Space(5f);
         }
     }
     private void CreateAndAddTag(string editingTagName, Note note)
