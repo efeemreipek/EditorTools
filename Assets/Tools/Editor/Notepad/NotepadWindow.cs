@@ -158,10 +158,35 @@ public class NotepadWindow : EditorWindow
             EditorGUI.DrawRect(rect, new Color(0.3f, 0.5f, 0.85f, 0.3f));
         }
 
-        Rect labelRect = new Rect(rect.x + 5f, rect.y + 5f, rect.width - 35f, rect.height - 10f);
+        float titleHeight = 20f;
+        float titleY = note.NoteTags.Count > 0 ? rect.y - 5f : rect.y + 5f;
+        float tagsHeight = note.NoteTags.Count > 0 ? 20f : 0f;
+        float totalHeight = titleHeight + tagsHeight + 10f;
+
+        Rect titleRect = new Rect(rect.x + 5f, titleY, rect.width - 35f, rect.height - 10f);
+        Rect tagsRect = new Rect(rect.x + 5f, rect.y + titleHeight, rect.width - 40f, tagsHeight);
         Rect xButtonRect = new Rect(rect.xMax - 35f, rect.y + 5f, 30f, 30f);
 
-        EditorGUI.LabelField(labelRect, note.Title, noteLabelStyle);
+        EditorGUI.LabelField(titleRect, note.Title, noteLabelStyle);
+
+        if(note.NoteTags.Count > 0)
+        {
+            float tagX = tagsRect.x;
+            float tagY = tagsRect.y + 2f;
+            float tagHeight = 18f;
+
+            foreach(var tag in note.NoteTags)
+            {
+                GUIContent tagContent = new GUIContent(tag.Name);
+                Vector2 tagSize = tagLabelStyle.CalcSize(tagContent);
+                Rect tagRect = new Rect(tagX, tagY, tagSize.x + 10f, tagHeight);
+
+                GUI.Label(tagRect, tag.Name, tagLabelStyle);
+
+                tagX += tagRect.width + 5f;
+                if(tagX > tagsRect.xMax - 20f) break;
+            }
+        }
 
         GUI.color = xButtonColor;
         if(GUI.Button(xButtonRect, "X", buttonStyle) && e.button == 0)
@@ -476,7 +501,6 @@ public class NotepadWindow : EditorWindow
         NoteTag tag = new NoteTag() { Name = editingTagName };
         editingNoteTags.Add(tag);
     }
-
     private void InitializeStyles()
     {
         isStylesInitDone = true;
