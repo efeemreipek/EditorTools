@@ -61,6 +61,7 @@ public class NotepadWindow : EditorWindow
     private bool linkedElementsFolded;
     private Dictionary<Note, ReorderableList> viewLists = new Dictionary<Note, ReorderableList>();
     private bool isTagButtonClicked;
+    private string tagSearchText = string.Empty;
 
     private string editingTitle = string.Empty;
     private string editingContent = string.Empty;
@@ -110,6 +111,7 @@ public class NotepadWindow : EditorWindow
         EditorGUILayout.BeginVertical(GUILayout.Width(EditorGUIUtility.currentViewWidth * 0.25f));
         GUILayout.Space(Layout.SPACE);
 
+        DrawSearchBar();
         DrawNoteList();
 
         if(Event.current.type == EventType.Repaint)
@@ -153,6 +155,24 @@ public class NotepadWindow : EditorWindow
             }
         }
     }
+    private void DrawSearchBar()
+    {
+        EditorGUILayout.BeginVertical("Box");
+        EditorGUILayout.LabelField("Search by Tags");
+        tagSearchText = EditorGUILayout.TextField(tagSearchText, EditorStyles.toolbarSearchField);
+        EditorGUILayout.EndVertical();
+    }
+    private List<Note> GetTagSearchedNotes()
+    {
+        if(string.IsNullOrEmpty(tagSearchText)) return notes;
+
+        string lowerSearch = tagSearchText.ToLower();
+
+        return notes
+            .Where(note => note.NoteTags
+            .Any(tag => tag.Name.ToLower().Contains(lowerSearch)))
+            .ToList();
+    }
     private void DrawNoteList()
     {
         EditorGUILayout.BeginVertical("Box");
@@ -167,11 +187,14 @@ public class NotepadWindow : EditorWindow
     }
     private void DrawNoteListElements()
     {
-        for(int i = 0; i < notes.Count; i++)
+        List<Note> filteredNotes = GetTagSearchedNotes();
+
+        for(int i = 0; i < filteredNotes.Count; i++)
         {
+            Note note = filteredNotes[i];
             Rect rect = GUILayoutUtility.GetRect(200, 40, GUILayout.ExpandWidth(true));
             noteElementRects.Add(rect);
-            DrawNoteListElement(i, rect, notes[i]);
+            DrawNoteListElement(i, rect, note);
         }
     }
     private void DrawNoteListElement(int index, Rect rect, Note note)
