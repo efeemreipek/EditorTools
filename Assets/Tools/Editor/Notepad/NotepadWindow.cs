@@ -24,6 +24,11 @@ public class NotepadWindow : EditorWindow
     {
         public string Name;
     }
+    [System.Serializable]
+    private class NoteData
+    {
+        public List<Note> Notes;
+    }
     private enum NotePanelMode
     {
         None,
@@ -75,6 +80,27 @@ public class NotepadWindow : EditorWindow
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
     private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
 
+    private const string EDITOR_KEY_NOTEPAD = "NOTEPAD_NOTES";
+
+    private void OnEnable()
+    {
+        if(EditorPrefs.HasKey(EDITOR_KEY_NOTEPAD))
+        {
+            string json = EditorPrefs.GetString(EDITOR_KEY_NOTEPAD);
+            var data = JsonUtility.FromJson<NoteData>(json);
+
+            if(data != null && data.Notes != null && data.Notes.Count > 0)
+            {
+                notes = data.Notes;
+            }
+        }
+    }
+    private void OnDisable()
+    {
+        var data = new NoteData() { Notes = notes };
+        string json = JsonUtility.ToJson(data);
+        EditorPrefs.SetString(EDITOR_KEY_NOTEPAD, json);
+    }
     private void OnGUI()
     {
         if(!isStylesInitDone) InitializeStyles();
@@ -127,7 +153,6 @@ public class NotepadWindow : EditorWindow
             }
         }
     }
-
     private void DrawNoteList()
     {
         EditorGUILayout.BeginVertical("Box");
