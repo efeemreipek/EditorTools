@@ -1,0 +1,8 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Tools/Editor/AutoSave/AutoSave.uss?fileID=7433441132597879392&amp;guid=775a80ae2aa08104faebb3dd1b5be499&amp;type=3#AutoSave" />
+    <engine:VisualElement style="flex-grow: 1; margin-top: 5px; margin-right: 5px; margin-bottom: 5px; margin-left: 5px; padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; background-color: rgba(32, 32, 32, 0.59);">
+        <engine:Toggle toggle-on-label-click="false" language-direction="Inherit" enabled="true" name="AutoSaveToggle" value="false" text="Enable Auto Save" style="visibility: visible; opacity: 1; justify-content: flex-start; align-self: auto; -unity-font-style: normal; background-color: rgba(0, 0, 0, 0); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0; border-left-color: rgba(0, 0, 0, 0); border-right-color: rgba(0, 0, 0, 0); border-top-color: rgba(0, 0, 0, 0); border-bottom-color: rgba(0, 0, 0, 0);" />
+        <engine:SliderInt label="Save interval (in minutes)" value="5" high-value="30" fill="true" low-value="1" show-ınput-field="true" name="SaveIntervalSlider" style="margin-top: 2px; margin-right: 0; margin-bottom: 2px; margin-left: 0;" />
+        <engine:Label text="Next save in -" name="NextSaveLabel" />
+    </engine:VisualElement>
+</engine:UXML>
