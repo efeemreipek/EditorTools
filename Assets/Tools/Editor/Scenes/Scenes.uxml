@@ -1,0 +1,12 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Tools/Editor/Scenes/Scenes.uss?fileID=7433441132597879392&amp;guid=60f23925994dbb24383692d2b7bfa3eb&amp;type=3#Scenes" />
+    <engine:Label text="SCENES" name="header-label" style="-unity-font-style: bold; -unity-text-align: middle-center; padding-right: 0; padding-left: 0; font-size: 30px; margin-top: 6px; margin-right: 3px; margin-bottom: 1px; margin-left: 3px; background-color: rgba(32, 32, 32, 0.39); -unity-text-outline-width: 1px; -unity-text-outline-color: rgb(0, 0, 0); letter-spacing: -5px;" />
+    <engine:ScrollView name="scroll-view" horizontal-scroller-visibility="Hidden" style="flex-shrink: 1; flex-grow: 1; background-color: rgba(32, 32, 32, 0.39); margin-right: 3px; margin-left: 3px; margin-top: 1px; margin-bottom: 3px; align-self: stretch; justify-content: flex-start; align-items: stretch;" />
+    <engine:GroupBox style="margin-bottom: 6px; margin-top: 1px; padding-top: 1px; padding-right: 1px; padding-bottom: 1px; padding-left: 1px; background-color: rgba(32, 32, 32, 0.39); position: relative; bottom: auto; align-content: flex-start; align-self: stretch;">
+        <engine:GroupBox style="flex-direction: row; justify-content: space-between; height: 50px; margin-top: 0; margin-right: 0; margin-bottom: 1px; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;">
+            <engine:Button text="ADD SCENE FOLDER" name="add-scene-button" class="button" style="flex-grow: 1; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 2px; margin-bottom: 0; margin-left: 0; align-self: center; width: 48%; height: 50px; white-space: normal;" />
+            <engine:Button text="CLEAR SCENE FOLDERS" name="clear-button" class="button" style="flex-grow: 1; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 2px; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; align-self: center; width: 48%; height: 50px; white-space: normal;" />
+        </engine:GroupBox>
+        <engine:Button text="VIEW FOLDERS" name="view-button" class="button" style="margin-top: 2px; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+    </engine:GroupBox>
+</engine:UXML>
