@@ -1,0 +1,37 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Tools/Editor/Randomizer/Randomizer.uss?fileID=7433441132597879392&amp;guid=d7bf22f2b2a66da49879a2f248f18f44&amp;type=3#Randomizer" />
+    <engine:GroupBox style="flex-direction: row; padding-top: 1px; padding-right: 1px; padding-bottom: 1px; padding-left: 1px; align-items: center; justify-content: space-between; background-color: rgba(32, 32, 32, 0.39);">
+        <engine:Label text="SEED" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; -unity-font-style: bold; flex-grow: 0; margin-right: 3px; font-size: 16px;" />
+        <engine:SliderInt value="42" high-value="100" fill="true" show-ınput-field="true" name="seed-slider" style="flex-grow: 1; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 1px;" />
+    </engine:GroupBox>
+    <engine:VisualElement name="help-box-container" style="flex-grow: 0;" />
+    <engine:GroupBox enabled="true" name="containers" style="padding-top: 1px; padding-right: 1px; padding-bottom: 1px; padding-left: 1px; background-color: rgba(32, 32, 32, 0.39); visibility: visible; display: flex;">
+        <engine:VisualElement name="position-container" class="container" style="flex-grow: 1;">
+            <engine:Toggle text="POSITION" toggle-on-label-click="false" name="position-toggle" class="toggle" />
+            <engine:GroupBox name="position-group" class="group" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;">
+                <engine:DropdownField label="Bound Style" choices="Circle,Square" index="0" name="bound-style-dropdown" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; -unity-text-align: middle-left; padding-bottom: 0; font-size: 12px; -unity-font-style: bold;" />
+                <engine:FloatField label="Bound Radius" value="1" name="bound-length-float" max-length="100" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; -unity-text-align: middle-left; padding-top: 2px; padding-bottom: 2px; font-size: 12px; -unity-font-style: bold;" />
+                <engine:Toggle label="Preserve Original Y" toggle-on-label-click="false" value="true" name="preserve-original-y-toggle" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; -unity-text-align: middle-left; padding-top: 2px; padding-bottom: 2px; font-size: 12px; justify-content: flex-start; -unity-font-style: bold;" />
+                <engine:Toggle label="Show Gizmos" toggle-on-label-click="false" name="show-gizmos-toggle" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; -unity-text-align: middle-left; padding-top: 2px; padding-bottom: 2px; font-size: 12px; -unity-font-style: bold;" />
+            </engine:GroupBox>
+        </engine:VisualElement>
+        <engine:VisualElement name="scale-container" class="container" style="flex-grow: 1;">
+            <engine:Toggle text="SCALE" name="scale-toggle" toggle-on-label-click="false" class="toggle" />
+            <engine:GroupBox name="scale-group" class="group" style="display: flex; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;">
+                <engine:GroupBox style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; flex-direction: row; align-items: center; justify-content: flex-start;">
+                    <engine:Label text="Limits" name="Label" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 2px; width: 122px; -unity-font-style: bold; font-size: 12px;" />
+                    <engine:GroupBox style="flex-direction: row; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; flex-grow: 1;">
+                        <engine:Label text="Min" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; -unity-text-align: middle-left; margin-right: 1px; margin-left: 0;" />
+                        <engine:FloatField value="1" name="min-limit" max-length="100" style="flex-shrink: 0; flex-grow: 1; flex-direction: row; margin-top: 0; margin-right: 5px; margin-bottom: 0; margin-left: 5px; width: auto;" />
+                        <engine:Label text="Max" style="padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; -unity-text-align: middle-left; margin-right: 1px; margin-left: 0;" />
+                        <engine:FloatField value="1" name="max-limit" max-length="100" style="flex-shrink: 0; flex-grow: 1; flex-direction: row; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 5px; justify-content: flex-start;" />
+                    </engine:GroupBox>
+                </engine:GroupBox>
+                <engine:DropdownField label="Decimal Places" choices="1,2,3,4" index="0" name="decimal-places-dropdown" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; justify-content: space-between; padding-top: 2px; padding-bottom: 2px; font-size: 12px; -unity-font-style: bold;" />
+            </engine:GroupBox>
+        </engine:VisualElement>
+        <engine:VisualElement name="rotation-container" class="container" style="flex-grow: 1;">
+            <engine:Toggle text="ROTATION" toggle-on-label-click="false" name="rotation-toggle" class="toggle" />
+        </engine:VisualElement>
+    </engine:GroupBox>
+</engine:UXML>
