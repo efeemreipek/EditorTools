@@ -1,0 +1,71 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Tools/Editor/MultiRenamer/MultiRenamer.uss?fileID=7433441132597879392&amp;guid=b75dd64daf22d0d4f8c11cf728f76c76&amp;type=3#MultiRenamer" />
+    <engine:GroupBox name="header" class="background header">
+        <engine:Label text="PREVIEW" name="header-label" class="header-label" />
+        <engine:Label text="Preview Label" name="header-preview-label" class="header-preview-label" style="display: flex;" />
+    </engine:GroupBox>
+    <engine:ScrollView name="scroll-view" class="background" style="flex-shrink: 1; flex-grow: 1;">
+        <engine:GroupBox name="change-original-name" class="name-spec">
+            <engine:Toggle text="Change Original Name" name="change-original-name-toggle" class="toggle" />
+            <engine:GroupBox name="change-original-name-group" class="name-spec-group" style="display: none;">
+                <engine:TextField label="New Base Name" name="change-original-name-text" style="align-items: center; -unity-text-align: middle-left;" />
+            </engine:GroupBox>
+        </engine:GroupBox>
+        <engine:GroupBox name="prefix" class="name-spec">
+            <engine:Toggle text="Add Prefix" name="prefix-toggle" class="toggle" />
+            <engine:GroupBox name="prefix-group" class="name-spec-group" style="display: none;">
+                <engine:TextField label="Prefix" name="prefix-text" style="align-items: center; -unity-text-align: middle-left;" />
+            </engine:GroupBox>
+        </engine:GroupBox>
+        <engine:GroupBox name="suffix" class="name-spec">
+            <engine:Toggle text="Add Suffix" name="suffix-toggle" class="toggle" />
+            <engine:GroupBox name="suffix-group" class="name-spec-group" style="display: none; visibility: visible;">
+                <engine:TextField label="Suffix&#10;" name="suffix-text" style="align-items: center; -unity-text-align: middle-left;" />
+            </engine:GroupBox>
+        </engine:GroupBox>
+        <engine:GroupBox name="trimming" class="name-spec">
+            <engine:Toggle text="Trimming" name="trimming-toggle" class="toggle" />
+            <engine:GroupBox name="trimming-group" class="name-spec-group" style="display: none;">
+                <engine:Toggle label="Trim Start" name="trim-start-toggle" class="custom-toggle" style="margin-bottom: 1px;" />
+                <engine:SliderInt label="Amount" value="0" high-value="10" name="trim-start-slider" fill="true" show-ınput-field="true" class="custom-slider" style="align-items: center; -unity-text-align: middle-left; margin-top: 0; display: none;" />
+                <engine:Toggle label="Trim End" name="trim-end-toggle" class="custom-toggle" style="margin-bottom: 1px;" />
+                <engine:SliderInt label="Amount" value="0" high-value="10" name="trim-end-slider" fill="true" show-ınput-field="true" class="custom-slider" style="align-items: center; -unity-text-align: middle-left; margin-top: 0; display: none;" />
+                <engine:Toggle label="Trim Unity Numbering" name="trim-unity-numbering-toggle" class="custom-toggle" style="margin-bottom: 1px;" />
+            </engine:GroupBox>
+        </engine:GroupBox>
+        <engine:GroupBox name="numbering" class="name-spec">
+            <engine:Toggle text="Add Numbering" name="numbering-toggle" class="toggle" />
+            <engine:GroupBox name="numbering-group" class="name-spec-group" style="display: none;">
+                <engine:EnumField label="Numbering Style" value="Center" type="MultiRenamer+Numbering, Assembly-CSharp-Editor" name="numbering-style-dropdown" />
+                <engine:UnsignedIntegerField label="Starting Number" value="0" name="numbering-start-number-int" />
+                <engine:SliderInt label="Number Padding" value="1" high-value="5" show-ınput-field="true" fill="true" low-value="1" inverted="false" name="numbering-padding-slider" />
+            </engine:GroupBox>
+        </engine:GroupBox>
+        <engine:GroupBox name="case" class="name-spec">
+            <engine:Toggle text="Use Case Option" name="case-toggle" class="toggle" />
+            <engine:GroupBox name="case-group" class="name-spec-group" style="display: none;">
+                <engine:EnumField label="Case Option" value="Center" type="MultiRenamer+Case, Assembly-CSharp-Editor" name="case-dropdown" />
+            </engine:GroupBox>
+        </engine:GroupBox>
+    </engine:ScrollView>
+    <engine:Foldout text="Presets" name="presets-foldout" value="true" class="background" style="font-size: 14px; -unity-font-style: bold; flex-grow: 0; flex-shrink: 0;">
+        <engine:GroupBox name="presets-group" style="padding-right: 3px; margin-top: 1px; padding-top: 0; padding-bottom: 0;">
+            <engine:GroupBox name="new-presets-group" style="flex-direction: row; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; justify-content: space-between;">
+                <engine:Label text="New Preset Name" style="-unity-text-align: middle-left; width: 150px; -unity-font-style: normal; font-size: 12px;" />
+                <engine:TextField name="new-preset-text" style="flex-grow: 1;" />
+                <engine:Button text="SAVE" name="save-preset-button" class="button preset-button" />
+            </engine:GroupBox>
+            <engine:GroupBox name="saved-presets-group" enabled="false" style="flex-direction: row; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; justify-content: space-between;">
+                <engine:Label text="Saved Presets" style="-unity-text-align: middle-left; width: 150px; -unity-font-style: normal; font-size: 12px;" />
+                <engine:GroupBox name="saved-presets-dropdown-group" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; flex-direction: row; flex-grow: 1;">
+                    <engine:DropdownField name="saved-presets-dropdown" style="flex-grow: 1;" />
+                    <engine:Button text="X" name="delete-preset-button" class="button delete-button" style="display: none;" />
+                </engine:GroupBox>
+                <engine:Button text="LOAD" name="load-preset-button" class="button preset-button" />
+            </engine:GroupBox>
+        </engine:GroupBox>
+    </engine:Foldout>
+    <engine:GroupBox class="background">
+        <engine:Button text="APPLY" name="apply-button" class="button" style="height: 40px; font-size: 20px;" />
+    </engine:GroupBox>
+</engine:UXML>
