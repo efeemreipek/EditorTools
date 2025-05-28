@@ -24,6 +24,7 @@ public class ScriptableObjectCreatorWindow : EditorWindow
     private List<Type> scriptableObjectTypes;
     private bool manualSave;
     private Vector2 scrollPos;
+    private readonly string[] foldersToExclude = new[] { "/Plugins/", "/Tools/" }; 
 
     private const string EDITOR_KEY_MANUAL_SAVE = "SO_CREATOR_MANUAL_SAVE";
 
@@ -113,8 +114,10 @@ public class ScriptableObjectCreatorWindow : EditorWindow
         foreach(string guid in guids)
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
-            MonoScript monoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
 
+            if(foldersToExclude.Any(folder => path.Contains(folder))) continue;
+
+            MonoScript monoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
             if(monoScript == null) continue;
 
             Type scriptClass = monoScript.GetClass();
