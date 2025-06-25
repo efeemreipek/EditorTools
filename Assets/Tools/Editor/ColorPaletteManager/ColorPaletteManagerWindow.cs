@@ -89,7 +89,7 @@ public class ColorPaletteManagerWindow : EditorWindow
         color = EditorGUILayout.ColorField("Color", color);
         GUILayout.Space(Layout.SPACE);
         GUI.color = buttonColor;
-        if(GUILayout.Button("ADD COLOR", buttonStyle, GUILayout.Height(30f)))
+        if(GUILayout.Button("ADD COLOR", buttonStyle, GUILayout.Height(30f)) && Event.current.button == 0)
         {
             AddColor(colorName, color);
         }
@@ -226,7 +226,7 @@ public class ColorPaletteManagerWindow : EditorWindow
             colorItem.Color = EditorGUI.ColorField(colorRect, GUIContent.none, colorItem.Color, false, true, false);
 
             GUI.color = xButtonColor;
-            if(GUI.Button(xRect, "X"))
+            if(GUI.Button(xRect, "X") && Event.current.button == 0)
             {
                 colorToRemove = colorItem;
             }
