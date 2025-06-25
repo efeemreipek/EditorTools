@@ -6,7 +6,7 @@ using UnityEditorInternal;
 
 public class ColorPaletteManagerWindow : EditorWindow
 {
-    [System.Serializable]
+    [Serializable]
     private class ColorName
     {
         public string Name;
@@ -17,6 +17,11 @@ public class ColorPaletteManagerWindow : EditorWindow
             Name = name;
             Color = color;
         }
+    }
+    [Serializable]
+    private class ColorsData
+    {
+        public List<ColorName> Colors = new List<ColorName>();
     }
     private static class Layout
     {
@@ -45,9 +50,28 @@ public class ColorPaletteManagerWindow : EditorWindow
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
     private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
 
+    private const string EDITOR_KEY_COLORS = "COLOR_PALETTE_COLORS";
+
     private void OnEnable()
     {
+        if(EditorPrefs.HasKey(EDITOR_KEY_COLORS))
+        {
+            string json = EditorPrefs.GetString(EDITOR_KEY_COLORS);
+            var data = JsonUtility.FromJson<ColorsData>(json);
+
+            if(data != null && data.Colors != null && data.Colors.Count > 0)
+            {
+                colors = data.Colors;
+            }
+        }
+
         InitReorderableList();
+    }
+    private void OnDisable()
+    {
+        var data = new ColorsData() { Colors = colors };
+        string json = JsonUtility.ToJson(data);
+        EditorPrefs.SetString(EDITOR_KEY_COLORS, json);
     }
     private void OnGUI()
     {
