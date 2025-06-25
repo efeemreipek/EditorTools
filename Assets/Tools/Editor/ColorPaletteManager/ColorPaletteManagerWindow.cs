@@ -136,10 +136,50 @@ public class ColorPaletteManagerWindow : EditorWindow
             Rect colorRect = new Rect(rect.x + labelWidth + 5, rect.y + 4, colorWidth, EditorGUIUtility.singleLineHeight);
             Rect xRect = new Rect(rect.x + rect.width - buttonWidth, rect.y + 4, buttonWidth, EditorGUIUtility.singleLineHeight);
 
+            Event e = Event.current;
+
+            if(e.type == EventType.MouseDown && e.button == 1 && rect.Contains(e.mousePosition))
+            {
+                GenericMenu menu = new GenericMenu();
+
+                menu.AddItem(new GUIContent("Rename"), false, () =>
+                {
+                    renameIndex = index;
+                    renameBuffer = colors[index].Name;
+                    shouldSelectAllText = true;
+                    Repaint();
+                });
+
+                menu.AddItem(new GUIContent("Duplicate"), false, () =>
+                {
+                    ColorName originalColor = colors[index];
+                    ColorName duplicatedColor = new ColorName(originalColor.Name + " Copy", originalColor.Color);
+                    colors.Insert(index + 1, duplicatedColor);
+                    reorderableList.list = colors;
+                    Repaint();
+                });
+
+                menu.AddItem(new GUIContent("Copy HEX"), false, () =>
+                {
+                    Color selectedColor = colors[index].Color;
+                    string hexColor = ColorUtility.ToHtmlStringRGBA(selectedColor);
+                    EditorGUIUtility.systemCopyBuffer = "#" + hexColor;
+                });
+
+                menu.AddItem(new GUIContent("Delete"), false, () =>
+                {
+                    colorToRemove = colors[index];
+                    Repaint();
+                });
+
+                menu.ShowAsContext();
+                e.Use();
+                return;
+            }
+
             if(renameIndex == index)
             {
                 GUI.SetNextControlName(textFieldControlName);
-                Event e = Event.current;
 
                 EditorGUI.BeginChangeCheck();
                 string newText = EditorGUI.TextField(labelRect, renameBuffer);
@@ -174,7 +214,6 @@ public class ColorPaletteManagerWindow : EditorWindow
             {
                 EditorGUI.LabelField(labelRect, colorItem.Name);
 
-                Event e = Event.current;
                 if(e.type == EventType.MouseDown && e.clickCount == 2 && labelRect.Contains(e.mousePosition))
                 {
                     renameIndex = index;
