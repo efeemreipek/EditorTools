@@ -33,11 +33,15 @@ public class ColorPaletteManagerWindow : EditorWindow
 
     private Vector2 scrollPos;
     private string colorName = string.Empty;
-    private Color color;
+    private Color color = new Color(1f, 1f, 1f, 1f);
     private List<ColorName> colors = new List<ColorName>();
 
     private bool isStylesInitDone;
     private GUIStyle middleLabelStyle;
+    private GUIStyle buttonStyle;
+    private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
+    private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
+
 
     private void OnGUI()
     {
@@ -50,10 +54,12 @@ public class ColorPaletteManagerWindow : EditorWindow
         colorName = EditorGUILayout.TextField("Name", colorName);
         color = EditorGUILayout.ColorField("Color", color);
         GUILayout.Space(Layout.SPACE);
-        if(GUILayout.Button("Add Color"))
+        GUI.color = buttonColor;
+        if(GUILayout.Button("ADD COLOR", buttonStyle, GUILayout.Height(30f)))
         {
             AddColor(colorName, color);
         }
+        GUI.color = Color.white;
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.BeginVertical("Box");
@@ -79,6 +85,12 @@ public class ColorPaletteManagerWindow : EditorWindow
         middleLabelStyle.fontStyle = FontStyle.Bold;
         middleLabelStyle.fontSize = 24;
         middleLabelStyle.normal.textColor = Color.white;
+
+        buttonStyle = new GUIStyle(GUI.skin.button);
+        buttonStyle.alignment = TextAnchor.MiddleCenter;
+        buttonStyle.fontStyle = FontStyle.Bold;
+        buttonStyle.fontSize = 15;
+        buttonStyle.normal.textColor = Color.white;
     }
     private void AddColor(string name, Color color)
     {
@@ -96,10 +108,12 @@ public class ColorPaletteManagerWindow : EditorWindow
 
             EditorGUILayout.BeginHorizontal();
             color.Color = EditorGUILayout.ColorField(new GUIContent(color.Name), color.Color, false, true, false);
+            GUI.color = xButtonColor;
             if(GUILayout.Button("X", GUILayout.Width(25f)))
             {
                 RemoveColor(color);
             }
+            GUI.color = Color.white;
             EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(Layout.SPACE);
