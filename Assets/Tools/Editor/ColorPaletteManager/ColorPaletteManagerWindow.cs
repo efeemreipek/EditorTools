@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEditorInternal;
 
 public class ColorPaletteManagerWindow : EditorWindow
 {
@@ -35,6 +36,8 @@ public class ColorPaletteManagerWindow : EditorWindow
     private string colorName = string.Empty;
     private Color color = new Color(1f, 1f, 1f, 1f);
     private List<ColorName> colors = new List<ColorName>();
+    private ReorderableList reorderableList;
+    private ColorName colorToRemove = null;
 
     private bool isStylesInitDone;
     private GUIStyle middleLabelStyle;
@@ -42,7 +45,10 @@ public class ColorPaletteManagerWindow : EditorWindow
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
     private Color xButtonColor = new Color(0.93f, 0.38f, 0.34f);
 
-
+    private void OnEnable()
+    {
+        InitReorderableList();
+    }
     private void OnGUI()
     {
         if(!isStylesInitDone) InitializeStyles();
@@ -64,18 +70,60 @@ public class ColorPaletteManagerWindow : EditorWindow
 
         EditorGUILayout.BeginVertical("Box");
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
-        DrawColors();
+        if(reorderableList != null)
+        {
+            reorderableList.DoLayoutList();
+        }
         EditorGUILayout.EndScrollView();
         EditorGUILayout.EndVertical();
+
+        // delete if pending removal
+        if(colorToRemove != null)
+        {
+            RemoveColor(colorToRemove);
+            colorToRemove = null;
+        }
 
         // if clicked on window, deselect, defocus
         if(Event.current.type == EventType.MouseDown && Event.current.button == 0)
         {
             GUI.FocusControl(null);
+            reorderableList.ClearSelection();
             Repaint();
         }
     }
 
+    private void InitReorderableList()
+    {
+        reorderableList = new ReorderableList(colors, typeof(ColorName), true, false, false, false);
+
+        reorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+        {
+            ColorName colorItem = colors[index];
+            float labelWidth = rect.width * 0.3f;
+            float buttonWidth = 25f;
+            float colorWidth = rect.width - labelWidth - buttonWidth - 10f;
+
+            Rect labelRect = new Rect(rect.x, rect.y + 4, labelWidth, EditorGUIUtility.singleLineHeight);
+            Rect colorRect = new Rect(rect.x + labelWidth + 5, rect.y + 4, colorWidth, EditorGUIUtility.singleLineHeight);
+            Rect xRect = new Rect(rect.x + rect.width - buttonWidth, rect.y + 4, buttonWidth, EditorGUIUtility.singleLineHeight);
+
+            EditorGUI.LabelField(labelRect, colorItem.Name);
+            colorItem.Color = EditorGUI.ColorField(colorRect, GUIContent.none, colorItem.Color, false, true, false);
+
+            GUI.color = xButtonColor;
+            if(GUI.Button(xRect, "X"))
+            {
+                colorToRemove = colorItem;
+            }
+            GUI.color = Color.white;
+        };
+
+        reorderableList.elementHeightCallback = (int index) =>
+        {
+            return EditorGUIUtility.singleLineHeight + 8;
+        };
+    }
     private void InitializeStyles()
     {
         isStylesInitDone = true;
@@ -94,34 +142,17 @@ public class ColorPaletteManagerWindow : EditorWindow
     }
     private void AddColor(string name, Color color)
     {
-        if(name == string.Empty) name = $"Color #{colors.Count + 1}";
+        if(string.IsNullOrEmpty(name)) name = $"Color #{colors.Count + 1}";
         ColorName newColorName = new ColorName(name, color);
         colors.Add(newColorName);
 
         colorName = string.Empty;
+
+        reorderableList.list = colors;
     }
-    private void DrawColors()
-    {
-        for(int i = 0; i < colors.Count; i++)
-        {
-            ColorName color = colors[i];
-
-            EditorGUILayout.BeginHorizontal();
-            color.Color = EditorGUILayout.ColorField(new GUIContent(color.Name), color.Color, false, true, false);
-            GUI.color = xButtonColor;
-            if(GUILayout.Button("X", GUILayout.Width(25f)))
-            {
-                RemoveColor(color);
-            }
-            GUI.color = Color.white;
-            EditorGUILayout.EndHorizontal();
-
-            GUILayout.Space(Layout.SPACE);
-        }
-    }
-
     private void RemoveColor(ColorName color)
     {
         colors.Remove(color);
+        reorderableList.list = colors;
     }
 }
