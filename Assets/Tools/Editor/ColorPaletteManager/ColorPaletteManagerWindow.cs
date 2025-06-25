@@ -43,6 +43,10 @@ public class ColorPaletteManagerWindow : EditorWindow
     private List<ColorName> colors = new List<ColorName>();
     private ReorderableList reorderableList;
     private ColorName colorToRemove = null;
+    private int renameIndex = -1;
+    private string renameBuffer = string.Empty;
+    private string textFieldControlName = "RenameTextField";
+    private bool shouldSelectAllText = false;
 
     private bool isStylesInitDone;
     private GUIStyle middleLabelStyle;
@@ -132,7 +136,54 @@ public class ColorPaletteManagerWindow : EditorWindow
             Rect colorRect = new Rect(rect.x + labelWidth + 5, rect.y + 4, colorWidth, EditorGUIUtility.singleLineHeight);
             Rect xRect = new Rect(rect.x + rect.width - buttonWidth, rect.y + 4, buttonWidth, EditorGUIUtility.singleLineHeight);
 
-            EditorGUI.LabelField(labelRect, colorItem.Name);
+            if(renameIndex == index)
+            {
+                GUI.SetNextControlName(textFieldControlName);
+                Event e = Event.current;
+
+                EditorGUI.BeginChangeCheck();
+                string newText = EditorGUI.TextField(labelRect, renameBuffer);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    renameBuffer = newText;
+                }
+
+                if(shouldSelectAllText && e.type == EventType.Repaint)
+                {
+                    shouldSelectAllText = false;
+                    EditorGUI.FocusTextInControl(textFieldControlName);
+
+                    // Schedule selection for next frame
+                    if(EditorApplication.update != null)
+                    {
+                        EditorApplication.update -= SelectAllTextDelayed;
+                    }
+                    EditorApplication.update += SelectAllTextDelayed;
+                }
+
+                if((e.type == EventType.KeyUp && e.keyCode == KeyCode.Return) || (e.type == EventType.MouseDown && !labelRect.Contains(e.mousePosition)))
+                {
+                    colorItem.Name = renameBuffer;
+                    renameIndex = -1;
+                    shouldSelectAllText = false;
+                    GUI.FocusControl(null);
+                    Repaint();
+                }
+            }
+            else
+            {
+                EditorGUI.LabelField(labelRect, colorItem.Name);
+
+                Event e = Event.current;
+                if(e.type == EventType.MouseDown && e.clickCount == 2 && labelRect.Contains(e.mousePosition))
+                {
+                    renameIndex = index;
+                    renameBuffer = colorItem.Name;
+                    shouldSelectAllText = true;
+                    e.Use();
+                }
+            }
+
             colorItem.Color = EditorGUI.ColorField(colorRect, GUIContent.none, colorItem.Color, false, true, false);
 
             GUI.color = xButtonColor;
@@ -147,6 +198,20 @@ public class ColorPaletteManagerWindow : EditorWindow
         {
             return EditorGUIUtility.singleLineHeight + 8;
         };
+    }
+    private void SelectAllTextDelayed()
+    {
+        EditorApplication.update -= SelectAllTextDelayed;
+
+        if(GUI.GetNameOfFocusedControl() == textFieldControlName)
+        {
+            TextEditor textEditor = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
+            if(textEditor != null)
+            {
+                textEditor.SelectAll();
+                Repaint();
+            }
+        }
     }
     private void InitializeStyles()
     {
