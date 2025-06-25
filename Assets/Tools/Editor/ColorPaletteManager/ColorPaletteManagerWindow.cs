@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -93,9 +94,20 @@ public class ColorPaletteManagerWindow : EditorWindow
         {
             ColorName color = colors[i];
 
+            EditorGUILayout.BeginHorizontal();
             color.Color = EditorGUILayout.ColorField(new GUIContent(color.Name), color.Color, false, true, false);
+            if(GUILayout.Button("X", GUILayout.Width(25f)))
+            {
+                RemoveColor(color);
+            }
+            EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(Layout.SPACE);
         }
+    }
+
+    private void RemoveColor(ColorName color)
+    {
+        colors.Remove(color);
     }
 }
