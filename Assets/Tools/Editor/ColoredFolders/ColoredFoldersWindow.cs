@@ -47,6 +47,7 @@ public class ColoredFoldersContextMenu
             foldersData.Data.RemoveAll(entry => entry.GUID == guid);
             EditorUtility.SetDirty(foldersData);
             AssetDatabase.SaveAssets();
+            ColoredFoldersDrawer.Refresh();
         }
     }
 }
@@ -182,6 +183,8 @@ public class ColoredFoldersWindow : EditorWindow
 
             EditorUtility.SetDirty(foldersData);
             AssetDatabase.SaveAssets();
+
+            ColoredFoldersDrawer.Refresh();
 
             this.Close();
         }
