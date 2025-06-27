@@ -60,6 +60,15 @@ public class ColoredFoldersWindow : EditorWindow
 
         var window = GetWindow<ColoredFoldersWindow>("Colored Folders");
         window.minSize = new Vector2(320f, 320f);
+
+        // set selected color to the current folder color if it exists
+        var existingEntry = foldersData.Data.Find(entry => entry.GUID == guid);
+        if(existingEntry != null)
+        {
+            window.useCustomColor = System.Array.IndexOf(window.presetColors, existingEntry.Color) == -1;
+            window.selectedColor = existingEntry.Color;
+        }
+
         window.Show();
     }
     
@@ -143,6 +152,8 @@ public class ColoredFoldersWindow : EditorWindow
 
             EditorUtility.SetDirty(foldersData);
             AssetDatabase.SaveAssets();
+
+            this.Close();
         }
     }
     private void CreateColorTextures()
