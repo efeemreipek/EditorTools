@@ -19,6 +19,36 @@ public class ColoredFoldersContextMenu
         string guid = AssetDatabase.AssetPathToGUID(path);
         ColoredFoldersWindow.Open(guid);
     }
+
+    [MenuItem("Assets/Remove Folder Color", true)]
+    private static bool RemoveFolderColorValidate()
+    {
+        string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+        if(!AssetDatabase.IsValidFolder(path)) return false;
+
+        string guid = AssetDatabase.AssetPathToGUID(path);
+        string dataPath = "Assets/ColoredFolders/ColoredFoldersData.asset";
+        var foldersData = AssetDatabase.LoadAssetAtPath<ColoredFoldersData>(dataPath);
+
+        return foldersData != null && foldersData.Data.Exists(entry => entry.GUID == guid);
+    }
+
+    [MenuItem("Assets/Remove Folder Color")]
+    private static void RemoveFolderColor()
+    {
+        string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+        string guid = AssetDatabase.AssetPathToGUID(path);
+
+        string dataPath = "Assets/ColoredFolders/ColoredFoldersData.asset";
+        var foldersData = AssetDatabase.LoadAssetAtPath<ColoredFoldersData>(dataPath);
+
+        if(foldersData != null)
+        {
+            foldersData.Data.RemoveAll(entry => entry.GUID == guid);
+            EditorUtility.SetDirty(foldersData);
+            AssetDatabase.SaveAssets();
+        }
+    }
 }
 
 public class ColoredFoldersWindow : EditorWindow
