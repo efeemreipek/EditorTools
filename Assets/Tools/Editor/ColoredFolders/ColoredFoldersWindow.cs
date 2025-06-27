@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -122,7 +123,26 @@ public class ColoredFoldersWindow : EditorWindow
 
         if(GUILayout.Button("Apply Color") && Event.current.button == 0)
         {
-            Debug.Log($"Applying color {selectedColor} to folder with GUID: {targetGUID}");
+            ColoredFolderEntry existingEntry = foldersData.Data.Find(entry => entry.GUID == targetGUID);
+
+            if(existingEntry != null)
+            {
+                existingEntry.Path = AssetDatabase.GUIDToAssetPath(targetGUID);
+                existingEntry.Color = selectedColor;
+            }
+            else
+            {
+                ColoredFolderEntry newEntry = new ColoredFolderEntry()
+                {
+                    Path = AssetDatabase.GUIDToAssetPath(targetGUID),
+                    GUID = targetGUID,
+                    Color = selectedColor
+                };
+                foldersData.Data.Add(newEntry);
+            }
+
+            EditorUtility.SetDirty(foldersData);
+            AssetDatabase.SaveAssets();
         }
     }
     private void CreateColorTextures()
