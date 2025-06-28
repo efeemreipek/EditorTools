@@ -59,7 +59,7 @@ public class ColoredFoldersWindow : EditorWindow
 
     private bool useCustomColor;
     private Color selectedColor = Color.white;
-    private readonly Color[] presetColors = new Color[]
+    private List<Color> presetColors = new List<Color>
     {
         new Color(0.7f, 0.15f, 0.25f),  // RED
         new Color(0.0f, 0.65f, 0.5f),  // GREEN
@@ -101,7 +101,7 @@ public class ColoredFoldersWindow : EditorWindow
         var existingEntry = foldersData.Data.Find(entry => entry.GUID == guid);
         if(existingEntry != null)
         {
-            window.useCustomColor = System.Array.IndexOf(window.presetColors, existingEntry.Color) == -1;
+            window.useCustomColor = window.presetColors.IndexOf(existingEntry.Color) == -1;
             window.selectedColor = existingEntry.Color;
         }
 
@@ -136,7 +136,7 @@ public class ColoredFoldersWindow : EditorWindow
             EditorGUILayout.BeginVertical();
 
             int columns = Mathf.CeilToInt(EditorGUIUtility.currentViewWidth / 80f);
-            int rows = Mathf.CeilToInt((float)presetColors.Length / columns);
+            int rows = Mathf.CeilToInt((float)presetColors.Count / columns);
 
             for(int row = 0; row < rows; row++)
             {
@@ -144,7 +144,7 @@ public class ColoredFoldersWindow : EditorWindow
                 for(int col = 0; col < columns; col++)
                 {
                     int index = row * columns + col;
-                    if(index >= presetColors.Length) break;
+                    if(index >= presetColors.Count) break;
 
                     Color color = presetColors[index];
 
@@ -183,13 +183,20 @@ public class ColoredFoldersWindow : EditorWindow
 
             // preview color border
             Rect previewRect = GUILayoutUtility.GetRect(64, 20);
-            EditorGUI.DrawRect(new Rect(previewRect.x - 1, previewRect.y - 1, previewRect.width + 2, previewRect.height + 2), Color.black);
+            EditorGUI.DrawRect(new Rect(previewRect.x - 2, previewRect.y - 2, previewRect.width + 4, previewRect.height + 4), Color.black);
             EditorGUI.DrawRect(previewRect, selectedColor);
         }
         EditorGUILayout.EndVertical();
         EditorGUILayout.Space();
 
         GUI.color = buttonColor;
+        if(useCustomColor)
+        {
+            if(GUILayout.Button("ADD TO PRESETS", buttonStyle, GUILayout.Height(40f)) && Event.current.button == 0)
+            {
+                presetColors.Add(selectedColor);
+            }
+        }
         if(GUILayout.Button("APPLY COLOR", buttonStyle, GUILayout.Height(40f)) && Event.current.button == 0)
         {
             ColoredFolderEntry existingEntry = foldersData.Data.Find(entry => entry.GUID == targetGUID);
