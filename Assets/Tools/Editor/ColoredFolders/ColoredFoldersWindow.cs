@@ -197,6 +197,18 @@ public class ColoredFoldersWindow : EditorWindow
                 presetColors.Add(selectedColor);
             }
         }
+        else
+        {
+            if(GUILayout.Button("REMOVE FROM PRESETS", buttonStyle, GUILayout.Height(40f)) && Event.current.button == 0)
+            {
+                if(presetColors.Contains(selectedColor))
+                {
+                    presetColors.Remove(selectedColor);
+                }
+                selectedColor = Color.white;
+            }
+        }
+
         if(GUILayout.Button("APPLY COLOR", buttonStyle, GUILayout.Height(40f)) && Event.current.button == 0)
         {
             ColoredFolderEntry existingEntry = foldersData.Data.Find(entry => entry.GUID == targetGUID);
