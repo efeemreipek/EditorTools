@@ -72,6 +72,11 @@ public class ColoredFoldersWindow : EditorWindow
     };
     private Dictionary<Color, Texture2D> colorTextures = new Dictionary<Color, Texture2D>();
 
+    private Vector2 scrollPos;
+    private bool isStylesInitDone;
+    private GUIStyle buttonStyle;
+    private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
+
     public static void Open(string guid)
     {
         targetGUID = guid;
@@ -109,6 +114,8 @@ public class ColoredFoldersWindow : EditorWindow
     }
     private void OnGUI()
     {
+        if(!isStylesInitDone) InitializeStyles();
+
         EditorGUILayout.BeginVertical("Box");
         useCustomColor = EditorGUILayout.ToggleLeft("Use Custom Color?", useCustomColor);
         EditorGUILayout.EndVertical();
@@ -161,7 +168,8 @@ public class ColoredFoldersWindow : EditorWindow
         EditorGUILayout.EndVertical();
         EditorGUILayout.Space();
 
-        if(GUILayout.Button("Apply Color") && Event.current.button == 0)
+        GUI.color = buttonColor;
+        if(GUILayout.Button("APPLY COLOR", buttonStyle, GUILayout.Height(40f)) && Event.current.button == 0)
         {
             ColoredFolderEntry existingEntry = foldersData.Data.Find(entry => entry.GUID == targetGUID);
 
@@ -188,6 +196,7 @@ public class ColoredFoldersWindow : EditorWindow
 
             this.Close();
         }
+        GUI.color = Color.white;
     }
     private void CreateColorTextures()
     {
@@ -205,5 +214,14 @@ public class ColoredFoldersWindow : EditorWindow
             tex.hideFlags = HideFlags.HideAndDontSave;
             colorTextures[color] = tex;
         }
+    }
+    private void InitializeStyles()
+    {
+        buttonStyle = new GUIStyle(GUI.skin.button);
+        buttonStyle.alignment = TextAnchor.MiddleCenter;
+        buttonStyle.fontStyle = FontStyle.Bold;
+        buttonStyle.fontSize = 14;
+        buttonStyle.normal.textColor = Color.white;
+        buttonStyle.wordWrap = true;
     }
 }
