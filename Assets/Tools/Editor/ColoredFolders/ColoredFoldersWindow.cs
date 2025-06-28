@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -77,6 +77,13 @@ public class ColoredFoldersWindow : EditorWindow
     private GUIStyle buttonStyle;
     private Color buttonColor = new Color(0.74f, 0.74f, 0.74f);
 
+    private const string EDITOR_KEY_PRESET_COLORS = "COLORED_FOLDERS_PRESET_COLORS";
+    [Serializable]
+    private class PresetColorsData
+    {
+        public List<Color> PresetColors = new List<Color>();
+    }
+
     public static void Open(string guid)
     {
         targetGUID = guid;
@@ -110,7 +117,24 @@ public class ColoredFoldersWindow : EditorWindow
     
     private void OnEnable()
     {
+        if(EditorPrefs.HasKey(EDITOR_KEY_PRESET_COLORS))
+        {
+            string json = EditorPrefs.GetString(EDITOR_KEY_PRESET_COLORS);
+            var data = JsonUtility.FromJson<PresetColorsData>(json);
+
+            if(data != null && data.PresetColors != null && data.PresetColors.Count > 0)
+            {
+                presetColors = data.PresetColors;
+            }
+        }
+
         CreateColorTextures();
+    }
+    private void OnDisable()
+    {
+        var data = new PresetColorsData() { PresetColors = presetColors };
+        string json = JsonUtility.ToJson(data);
+        EditorPrefs.SetString(EDITOR_KEY_PRESET_COLORS, json);
     }
     private void OnGUI()
     {
