@@ -52,13 +52,24 @@ public class ColoredFoldersContextMenu
     }
 }
 
-public class ColoredFoldersWindow : EditorWindow
+public class ColoredFoldersWindow : EditorWindow, IHasCustomMenu
 {
     private static string targetGUID;
     private static ColoredFoldersData foldersData;
 
     private bool useCustomColor;
     private Color selectedColor = Color.white;
+    private List<Color> originalPresetColors = new List<Color>
+    {
+        new Color(0.7f, 0.15f, 0.25f),  // RED
+        new Color(0.0f, 0.65f, 0.5f),  // GREEN
+        new Color(0.0f, 0.25f, 0.5f), // BLUE
+        new Color(0.8f, 0.8f, 0.3f),  // YELLOW
+        new Color(0.4f, 0.8f, 0.95f),  // AQUA
+        new Color(0.4f, 0.3f, 0.7f), // PURPLE
+        new Color(1.0f, 0.6f, 0.3f),   // ORANGE
+        new Color(0.55f, 0.4f, 0.25f), // BROWN
+    };
     private List<Color> presetColors = new List<Color>
     {
         new Color(0.7f, 0.15f, 0.25f),  // RED
@@ -287,5 +298,15 @@ public class ColoredFoldersWindow : EditorWindow
         buttonStyle.fontSize = 14;
         buttonStyle.normal.textColor = Color.white;
         buttonStyle.wordWrap = true;
+    }
+
+    public void AddItemsToMenu(GenericMenu menu)
+    {
+        menu.AddItem(new GUIContent("Reset Preset Colors"), false, ResetPresetColors);
+    }
+    private void ResetPresetColors()
+    {
+        presetColors.Clear();
+        presetColors.AddRange(originalPresetColors);
     }
 }
