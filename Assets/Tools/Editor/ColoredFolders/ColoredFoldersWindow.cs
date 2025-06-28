@@ -124,39 +124,60 @@ public class ColoredFoldersWindow : EditorWindow
         if(useCustomColor)
         {
             selectedColor = EditorGUILayout.ColorField(new GUIContent("Select Custom Color"), selectedColor, true, true, false);
+            GUILayout.FlexibleSpace();
         }
         else
         {
             EditorGUILayout.LabelField("Select Preset Color");
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+            GUILayout.Space(5);
             EditorGUILayout.BeginHorizontal();
+            GUILayout.Space(5);
+            EditorGUILayout.BeginVertical();
 
-            for(int i = 0; i < presetColors.Length; i++)
+            int columns = Mathf.CeilToInt(EditorGUIUtility.currentViewWidth / 80f);
+            int rows = Mathf.CeilToInt((float)presetColors.Length / columns);
+
+            for(int row = 0; row < rows; row++)
             {
-                Color color = presetColors[i];
-
-                // space between colors
-                if(i != 0) GUILayout.Space(5);
-
-                // color border
-                Rect buttonRect = GUILayoutUtility.GetRect(32, 32);
-                EditorGUI.DrawRect(new Rect(buttonRect.x - 1, buttonRect.y - 1, buttonRect.width + 2, buttonRect.height + 2), Color.black);
-
-                if(GUI.Button(buttonRect, GUIContent.none) && Event.current.button == 0)
+                EditorGUILayout.BeginHorizontal();
+                for(int col = 0; col < columns; col++)
                 {
-                    selectedColor = color;
-                }
-                EditorGUI.DrawRect(buttonRect, color);
+                    int index = row * columns + col;
+                    if(index >= presetColors.Length) break;
 
-                // highlight selected color
-                if(selectedColor == color)
-                {
-                    EditorGUI.DrawRect(new Rect(buttonRect.x - 2, buttonRect.y - 2, buttonRect.width + 4, buttonRect.height + 4), Color.white);
+                    Color color = presetColors[index];
+
+                    // Space between colors
+                    if(col > 0) GUILayout.Space(5);
+
+                    // Get rect with extra space for borders
+                    Rect buttonRect = GUILayoutUtility.GetRect(32, 32);
                     EditorGUI.DrawRect(new Rect(buttonRect.x - 1, buttonRect.y - 1, buttonRect.width + 2, buttonRect.height + 2), Color.black);
+
+                    if(GUI.Button(buttonRect, GUIContent.none) && Event.current.button == 0)
+                    {
+                        selectedColor = color;
+                    }
                     EditorGUI.DrawRect(buttonRect, color);
+
+                    // Highlight selected color with extended borders
+                    if(selectedColor == color)
+                    {
+                        EditorGUI.DrawRect(new Rect(buttonRect.x - 2, buttonRect.y - 2, buttonRect.width + 4, buttonRect.height + 4), Color.white);
+                        EditorGUI.DrawRect(new Rect(buttonRect.x - 1, buttonRect.y - 1, buttonRect.width + 2, buttonRect.height + 2), Color.black);
+                        EditorGUI.DrawRect(buttonRect, color);
+                    }
                 }
+                EditorGUILayout.EndHorizontal();
+                GUILayout.Space(5);
             }
 
+            EditorGUILayout.EndVertical();
+            GUILayout.Space(5);
             EditorGUILayout.EndHorizontal();
+            GUILayout.Space(5);
+            EditorGUILayout.EndScrollView();
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Preview");
 
