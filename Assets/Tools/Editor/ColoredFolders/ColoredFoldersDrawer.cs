@@ -31,7 +31,6 @@ public class ColoredFoldersDrawer
         }
         if(!colorCache.ContainsKey(guid))
         {
-            // Debug.Log($"No color defined for folder: {assetPath}"); // Uncomment for debugging
             return;
         }
 
@@ -61,7 +60,23 @@ public class ColoredFoldersDrawer
         Texture2D icon = isEmpty ? folderEmptyIcon : (isOpened ? folderOpenIcon : folderIcon);
         if(icon == null) return;
 
+        // draw folder icon
         DrawColoredIcon(selectionRect, icon, colorCache[guid]);
+
+        if(isTreeView)
+        {
+            // draw colored rectangle
+            Rect highlightRect = new Rect(0, selectionRect.y, EditorGUIUtility.currentViewWidth, selectionRect.height);
+            Color highlightColor = colorCache[guid];
+            highlightColor.a = 0.3f;
+            EditorGUI.DrawRect(highlightRect, highlightColor);
+
+            // draw folder name on top
+            string folderName = Path.GetFileName(assetPath);
+            Rect textRect = new Rect(selectionRect.x + selectionRect.width, selectionRect.y, EditorGUIUtility.currentViewWidth, selectionRect.height);
+            GUI.Label(textRect, folderName);
+        }
+
     }
     private static void LoadFolderIcons()
     {
