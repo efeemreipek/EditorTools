@@ -2,6 +2,19 @@
 
 Various Unity Editor tools for productivity and easier level design.
 
+### Colored Folders
+
+Change the color of the folders in the project window to avoid confusion in large projects.
+
+![Colored Folders1](/readme/colored_folders_1.png)
+![Colored Folders2](/readme/colored_folders_2.png)
+
+### Color Palette Manager
+
+Quickly access your used colors in the game with an option to name them to not forget.
+
+![Color Palette Manager](/readme/color_palette_manager.png)
+
 ### Notepad
 
 Take notes for future self or teammates. Create a note, add tags and add linked elements for quickly access the subject of the note. You can search the notes by their tags.
