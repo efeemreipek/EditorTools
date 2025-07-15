@@ -35,8 +35,15 @@ public static class TimeScaleSlider
 
         GUILayout.Label("TimeScale");
         float sliderValue = GUILayout.HorizontalSlider(timeScale, minTimeScale, maxTimeScale, GUILayout.Width(100f));
-        timeScale = Mathf.Round(sliderValue / snapInterval) * snapInterval;
-        timeScale = EditorGUILayout.FloatField(timeScale, GUILayout.Width(35f));
+        if(!Mathf.Approximately(sliderValue, timeScale))
+        {
+            timeScale = Mathf.Round(sliderValue / snapInterval) * snapInterval;
+        }
+        float floatFieldValue = EditorGUILayout.FloatField(timeScale, GUILayout.Width(35f));
+        if(!Mathf.Approximately(floatFieldValue, timeScale))
+        {
+            timeScale = floatFieldValue;
+        }
         timeScale = Mathf.Clamp(timeScale, minTimeScale, maxTimeScale);
 
         GUILayout.Space(5);
