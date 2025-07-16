@@ -1660,6 +1660,7 @@ MonoBehaviour:
   isAlive: 0
   health: 0
   mana: 3
+  readOnlyTest: {x: 0, y: 0}
 --- !u!4 &1796551999
 Transform:
   m_ObjectHideFlags: 0
