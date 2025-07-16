@@ -18,7 +18,10 @@ public class ButtonAttributeDrawer : Editor
             var attributes = method.GetCustomAttributes(typeof(ButtonAttribute), false);
             if(attributes.Length > 0)
             {
-                if(GUILayout.Button(method.Name))
+                ButtonAttribute buttonAttribute = (ButtonAttribute)attributes[0];
+                string buttonLabel = string.IsNullOrEmpty(buttonAttribute.MethodName) ? method.Name : buttonAttribute.MethodName;
+
+                if(GUILayout.Button(buttonLabel))
                 {
                     method.Invoke(target, null);
                 }

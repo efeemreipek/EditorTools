@@ -17,7 +17,7 @@ public class AttributeTest : MonoBehaviour
         Debug.Log("PublicButton is clicked");
     }
 
-    [Button]
+    [Button("Click this")]
     private void PrivateButtonTest()
     {
         Debug.Log("PrivateButton is clicked");
