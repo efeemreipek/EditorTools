@@ -1661,6 +1661,8 @@ MonoBehaviour:
   health: 0
   mana: 3
   readOnlyTest: {x: 0, y: 0}
+  minMaxTestVector2: {x: 0, y: 1.999998}
+  minMaxTestVector2Int: {x: 2, y: 5}
 --- !u!4 &1796551999
 Transform:
   m_ObjectHideFlags: 0
