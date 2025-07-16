@@ -24,6 +24,6 @@ public class ShowIfAttributeDrawer : PropertyDrawer
         {
             return EditorGUI.GetPropertyHeight(property, label, true);
         }
-        return -(EditorGUIUtility.standardVerticalSpacing + 10f);
+        return -EditorGUIUtility.standardVerticalSpacing;
     }
 }

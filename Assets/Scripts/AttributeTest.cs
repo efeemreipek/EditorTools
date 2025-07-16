@@ -9,4 +9,16 @@ public class AttributeTest : MonoBehaviour
     [SerializeField, MinMaxSlider(0f, 5f)] private Vector2 minMaxTestVector2;
     [SerializeField, MinMaxSlider(0f, 5f)] private Vector2Int minMaxTestVector2Int;
     [SerializeField, Clamp(0f, 10f)] private float clampTest;
+
+    [Button]
+    public void PublicButtonTest()
+    {
+        Debug.Log("PublicButton is clicked");
+    }
+
+    [Button]
+    private void PrivateButtonTest()
+    {
+        Debug.Log("PrivateButton is clicked");
+    }
 }
