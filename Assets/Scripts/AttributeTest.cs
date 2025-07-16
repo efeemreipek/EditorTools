@@ -10,6 +10,7 @@ public class AttributeTest : MonoBehaviour
     [SerializeField, MinMaxSlider(0f, 5f)] private Vector2Int minMaxTestVector2Int;
     [SerializeField, Clamp(0f, 10f)] private float clampTest;
 
+
     [Button]
     public void PublicButtonTest()
     {
@@ -21,4 +22,9 @@ public class AttributeTest : MonoBehaviour
     {
         Debug.Log("PrivateButton is clicked");
     }
+
+
+    [SerializeField, FoldoutGroup("Test")] private float foldoutTestFloat = 1f;
+    [SerializeField, FoldoutGroup("Test")] private Vector2 foldoutTestV2;
+    [SerializeField, FoldoutGroup("Test")] private string foldoutTestString;
 }
