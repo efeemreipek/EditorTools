@@ -8,4 +8,5 @@ public class AttributeTest : MonoBehaviour
     [SerializeField, ReadOnly] private Vector2 readOnlyTest;
     [SerializeField, MinMaxSlider(0f, 5f)] private Vector2 minMaxTestVector2;
     [SerializeField, MinMaxSlider(0f, 5f)] private Vector2Int minMaxTestVector2Int;
+    [SerializeField, Clamp(0f, 10f)] private float clampTest;
 }
