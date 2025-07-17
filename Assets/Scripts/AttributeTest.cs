@@ -69,4 +69,7 @@ public class AttributeTest : MonoBehaviour
     public int maxHealth;
     [Required("Speed is required")]
     public float movementSpeed;
+
+    [Header("TagSelector")]
+    [TagSelector] public string playerTag;
 }

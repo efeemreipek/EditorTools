@@ -1683,6 +1683,7 @@ MonoBehaviour:
   playerName: 
   maxHealth: 0
   movementSpeed: 0
+  playerTag: Untagged
 --- !u!4 &1796551999
 Transform:
   m_ObjectHideFlags: 0
