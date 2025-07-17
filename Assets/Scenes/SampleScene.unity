@@ -1679,6 +1679,10 @@ MonoBehaviour:
   aiDifficulty: 0.5
   gameMode: Debug
   showDebugInfo: 0
+  playerTransform: {fileID: 0}
+  playerName: 
+  maxHealth: 0
+  movementSpeed: 0
 --- !u!4 &1796551999
 Transform:
   m_ObjectHideFlags: 0

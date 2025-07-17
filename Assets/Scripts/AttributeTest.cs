@@ -59,4 +59,14 @@ public class AttributeTest : MonoBehaviour
     [Header("String Condition")]
     public string gameMode = "Normal";
     [ConditionalShow("gameMode", "Debug")] public bool showDebugInfo = false;
+
+    [Header("Required")]
+    [Required("Transform must be assigned!")]
+    public Transform playerTransform;
+    [Required("Player name cannot be empty!")]
+    public string playerName;
+    [Required("Health must be greater than 0")]
+    public int maxHealth;
+    [Required("Speed is required")]
+    public float movementSpeed;
 }
