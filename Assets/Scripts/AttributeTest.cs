@@ -72,4 +72,7 @@ public class AttributeTest : MonoBehaviour
 
     [Header("TagSelector")]
     [TagSelector] public string playerTag;
+
+    [Header("SceneSelector")]
+    [SceneSelector] public string sceneToLoad;
 }
