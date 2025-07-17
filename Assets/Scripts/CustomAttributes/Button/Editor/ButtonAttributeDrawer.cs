@@ -10,13 +10,15 @@ public class ButtonAttributeDrawer : PropertyDrawer
         ButtonAttribute buttonAttribute = (ButtonAttribute)attribute;
         string methodName = buttonAttribute.MethodName ?? buttonAttribute.ButtonText;
 
+        bool isVisible = IsPropertyVisible(property);
+
+        if(!isVisible) return;
+
         float buttonHeight = EditorGUIUtility.singleLineHeight * 1.5f;
 
-        // Split the position into two parts: one for the button, one for the property
         Rect buttonRect = new Rect(position.x, position.y, position.width, buttonHeight);
-        Rect propertyRect = new Rect(position.x, position.y + buttonHeight + EditorGUIUtility.standardVerticalSpacing,
-            position.width, position.height - buttonHeight - EditorGUIUtility.standardVerticalSpacing);
-        
+        Rect propertyRect = new Rect(position.x, position.y + buttonHeight + EditorGUIUtility.standardVerticalSpacing, position.width, position.height - buttonHeight - EditorGUIUtility.standardVerticalSpacing);
+
         // Draw the button
         if(GUI.Button(buttonRect, buttonAttribute.ButtonText))
         {
@@ -44,15 +46,35 @@ public class ButtonAttributeDrawer : PropertyDrawer
             }
         }
 
-        // Draw the original property field
         EditorGUI.PropertyField(propertyRect, property, label, true);
     }
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        // Calculate the total height: button height + property height + spacing
+        bool isVisible = IsPropertyVisible(property);
+
+        if(!isVisible) return -EditorGUIUtility.standardVerticalSpacing;
+
         float buttonHeight = EditorGUIUtility.singleLineHeight * 1.5f;
         float propertyHeight = EditorGUI.GetPropertyHeight(property, label, true);
         return buttonHeight + propertyHeight + EditorGUIUtility.standardVerticalSpacing;
+    }
+
+    private bool IsPropertyVisible(SerializedProperty property)
+    {
+        var fieldInfo = property.serializedObject.targetObject.GetType()
+            .GetField(property.name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        if(fieldInfo != null)
+        {
+            var foldoutAttribute = fieldInfo.GetCustomAttribute<FoldoutGroupAttribute>();
+            if(foldoutAttribute != null)
+            {
+                string key = $"{property.serializedObject.targetObject.GetInstanceID()}_{foldoutAttribute.GroupName}";
+                return FoldoutGroupAttributeDrawer.GetFoldoutState(key);
+            }
+        }
+
+        return true;
     }
 }

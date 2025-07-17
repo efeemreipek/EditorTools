@@ -46,6 +46,11 @@ public class FoldoutGroupAttributeDrawer : PropertyDrawer
 
         CacheGroupFields(property.serializedObject.targetObject, attr.GroupName);
 
+        if(!isVisible && !IsFirstFieldInGroup(property, attr.GroupName))
+        {
+            return -EditorGUIUtility.standardVerticalSpacing;
+        }
+
         float propertyHeight = EditorGUI.GetPropertyHeight(property, label, true);
 
         if(IsFirstFieldInGroup(property, attr.GroupName))
@@ -53,6 +58,7 @@ public class FoldoutGroupAttributeDrawer : PropertyDrawer
             float foldoutHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
             return isVisible ? foldoutHeight + propertyHeight : foldoutHeight;
         }
+
         if(IsLastFieldInGroup(property, attr.GroupName) && isVisible)
         {
             return propertyHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -105,5 +111,10 @@ public class FoldoutGroupAttributeDrawer : PropertyDrawer
         }
 
         return false;
+    }
+
+    public static bool GetFoldoutState(string key)
+    {
+        return foldoutStates.ContainsKey(key) ? foldoutStates[key] : true;
     }
 }
