@@ -1664,6 +1664,21 @@ MonoBehaviour:
   minMaxTestVector2: {x: 0, y: 1.999998}
   minMaxTestVector2Int: {x: 2, y: 5}
   clampTest: 10
+  foldoutTestFloat: 1
+  foldoutTestV2: {x: 0, y: 0}
+  foldoutTestString: 
+  showAdvanced: 0
+  advancedValue: 1
+  advancedText: Hidden by default
+  weaponType: 0
+  range: 10
+  manaCost: 5
+  playerLevel: 10
+  specialAbility: Unlocked at level 10
+  isPlayer: 1
+  aiDifficulty: 0.5
+  gameMode: Debug
+  showDebugInfo: 0
 --- !u!4 &1796551999
 Transform:
   m_ObjectHideFlags: 0
