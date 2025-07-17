@@ -1,16 +1,21 @@
 using System;
+using UnityEngine;
 
-[AttributeUsage(AttributeTargets.Method)]
-public class ButtonAttribute : Attribute
+[AttributeUsage(AttributeTargets.Field)]
+public class ButtonAttribute : PropertyAttribute
 {
+    public string ButtonText;
     public string MethodName;
 
-    public ButtonAttribute()
+    public ButtonAttribute(string buttonText, string methodName)
     {
-        MethodName = null;
+        ButtonText = buttonText;
+        MethodName = methodName;
     }
+
     public ButtonAttribute(string methodName)
     {
+        ButtonText = methodName;
         MethodName = methodName;
     }
 }

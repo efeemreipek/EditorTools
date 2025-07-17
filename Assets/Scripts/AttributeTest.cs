@@ -5,23 +5,26 @@ public class AttributeTest : MonoBehaviour
     [Header("ShowIf")]
     public bool isAlive = false;
     [ShowIf("isAlive")] public float health = 0f;
+
     [Header("RangeWithStep")]
     [RangeWithStep(0f, 5f, 0.5f)] public float mana = 0f;
+
     [Header("ReadOnly")]
     [ReadOnly] public Vector2 readOnlyTest;
+
     [Header("MinMaxSlider")]
+    [Button("Click this", "PrivateButtonTest")]
     [MinMaxSlider(0f, 5f)] public Vector2 minMaxTestVector2;
     [MinMaxSlider(0f, 5f)] public Vector2Int minMaxTestVector2Int;
+
     [Header("Clamp")]
     [Clamp(0f, 10f)] public float clampTest;
 
-    [Button]
     public void PublicButtonTest()
     {
         Debug.Log("PublicButton is clicked");
     }
 
-    [Button("Click this")]
     private void PrivateButtonTest()
     {
         Debug.Log("PrivateButton is clicked");
@@ -29,6 +32,7 @@ public class AttributeTest : MonoBehaviour
 
     [Header("FoldoutGroup")]
     [FoldoutGroup("Test")] public float foldoutTestFloat = 1f;
+    [Button("PublicButtonTest")]
     [FoldoutGroup("Test")] public Vector2 foldoutTestV2;
     [FoldoutGroup("Test")] public string foldoutTestString;
 
