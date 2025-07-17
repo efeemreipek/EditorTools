@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 
+[AttributeUsage(AttributeTargets.Field)]
 public class ClampAttribute : PropertyAttribute
 {
     public float Min;
