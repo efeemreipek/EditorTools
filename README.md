@@ -2,6 +2,16 @@
 
 Various Unity Editor tools for productivity and easier level design.
 
+### Custom Attributes
+Various custom attributes to use in the inspector for better readability and usability.
+
+![Attributes](/readme/attributes.png)
+
+### TimeScale Slider
+Change the Time.timeScale in editor with a slider.
+
+![TimeScale Slider](/readme/timescale_slider.png)
+
 ### Colored Folders
 
 Change the color of the folders in the project window to avoid confusion in large projects.
