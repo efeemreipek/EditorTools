@@ -11,8 +11,8 @@ public static class ProjectWindowUtil
 
     private static EditorWindow ProjectBrowser;
 
-    private static TreeViewState CurrentAssetTreeViewState;
-    private static TreeViewState CurrentFolderTreeViewState;
+    private static TreeViewState<int> CurrentAssetTreeViewState;
+    private static TreeViewState<int> CurrentFolderTreeViewState;
 
     // 0 for one column, 1 for two column
     private static int CurrentProjectBrowserMode;
@@ -68,8 +68,8 @@ public static class ProjectWindowUtil
                 }
             }
 
-            CurrentAssetTreeViewState = AssetTreeStateField.GetValue(ProjectBrowser) as TreeViewState;
-            CurrentFolderTreeViewState = FolderTreeStateField.GetValue(ProjectBrowser) as TreeViewState;
+            CurrentAssetTreeViewState = AssetTreeStateField.GetValue(ProjectBrowser) as TreeViewState<int>;
+            CurrentFolderTreeViewState = FolderTreeStateField.GetValue(ProjectBrowser) as TreeViewState<int>;
             CurrentProjectBrowserMode = (int)ProjectBrowserMode.GetValue(ProjectBrowser);
         }
         catch
